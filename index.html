@@ -904,4 +904,607 @@
         if (e) e.stopPropagation();
         const idx = openNoteIds.indexOf(id);
         if (idx === -1) return;
-        openNoteIds.splice
+        openNoteIds.splice(idx, 1);
+        if (activeNoteId === id) {
+            activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
+        }
+        saveOpen();
+        renderTabs();
+        renderEditor();
+    }
+
+    function renderTabs() {
+        const bar = document.getElementById("note-tabs");
+        bar.innerHTML = "";
+        if (openNoteIds.length === 0) {
+            const msg = document.createElement("span");
+            msg.className = "no-tabs";
+            msg.textContent = "Open an entry to start writing.";
+            bar.appendChild(msg);
+            return;
+        }
+        openNoteIds.forEach(id => {
+            const note = data.notes.find(n => n.id === id);
+            if (!note) return;
+            const tab = document.createElement("div");
+            tab.className = "note-tab" + (id === activeNoteId ? " active" : "");
+            const name = document.createElement("span");
+            name.className = "tab-name";
+            name.textContent = note.title || "Untitled";
+            const close = document.createElement("button");
+            close.className = "tab-close";
+            close.textContent = "×";
+            close.addEventListener("click", (e) => closeNoteTab(id, e));
+            tab.appendChild(name);
+            tab.appendChild(close);
+            tab.addEventListener("click", () => {
+                activeNoteId = id;
+                renderTabs();
+                renderEditor();
+            });
+            bar.appendChild(tab);
+        });
+    }
+
+    let dragCatIndex = null;
+
+    function renderCategories() {
+        const list = document.getElementById("cat-list");
+        list.innerHTML = "";
+        data.categories.forEach((cat, index) => {
+            const count = data.notes.filter(n => n.categoryId === cat.id).length;
+            const item = document.createElement("div");
+            item.className = "cat-item" + (cat.id === activeCategory ? " active" : "");
+            item.draggable = true;
+
+            const handle = document.createElement("span");
+            handle.className = "drag-handle";
+            handle.textContent = "⋮⋮";
+
+            const name = document.createElement("span");
+            name.className = "cat-name";
+            name.textContent = cat.name;
+
+            const countEl = document.createElement("span");
+            countEl.className = "cat-count";
+            countEl.textContent = count;
+
+            item.appendChild(handle);
+            item.appendChild(name);
+            item.appendChild(countEl);
+
+            if (data.categories.length > 1) {
+                const del = document.createElement("button");
+                del.className = "del-cat";
+                del.textContent = "×";
+                del.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    confirmDialog("Delete category?", `"${cat.name}" and its entries will be removed.`, () => {
+                        data.categories = data.categories.filter(c => c.id !== cat.id);
+                        const removedIds = data.notes.filter(n => n.categoryId === cat.id).map(n => n.id);
+                        data.notes = data.notes.filter(n => n.categoryId !== cat.id);
+                        openNoteIds = openNoteIds.filter(id => !removedIds.includes(id));
+                        if (activeNoteId && !data.notes.some(n => n.id === activeNoteId)) {
+                            activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
+                        }
+                        if (activeCategory === cat.id) {
+                            activeCategory = data.categories[0].id;
+                            activeSubTab = "";
+                        }
+                        save();
+                        saveOpen();
+                        renderCategories();
+                        renderSubtabs();
+                        renderTabs();
+                        renderNoteList();
+                        renderEditor();
+                    });
+                });
+                item.appendChild(del);
+            }
+
+            item.addEventListener("click", () => {
+                activeCategory = cat.id;
+                activeSubTab = "";
+                searchTerm = "";
+                document.getElementById("search-input").value = "";
+                renderCategories();
+                renderSubtabs();
+                renderNoteList();
+            });
+
+            item.addEventListener("dragstart", () => {
+                dragCatIndex = index;
+                item.classList.add("dragging");
+            });
+            item.addEventListener("dragend", () => {
+                item.classList.remove("dragging");
+                document.querySelectorAll(".cat-item").forEach(el => el.classList.remove("drag-over"));
+            });
+            item.addEventListener("dragover", (e) => { e.preventDefault(); item.classList.add("drag-over"); });
+            item.addEventListener("dragleave", () => item.classList.remove("drag-over"));
+            item.addEventListener("drop", (e) => {
+                e.preventDefault();
+                item.classList.remove("drag-over");
+                if (dragCatIndex === null || dragCatIndex === index) return;
+                const moved = data.categories.splice(dragCatIndex, 1)[0];
+                data.categories.splice(index, 0, moved);
+                dragCatIndex = null;
+                save();
+                renderCategories();
+            });
+
+            list.appendChild(item);
+        });
+    }
+
+    let dragSubIndex = null;
+
+    function renderSubtabs() {
+        const bar = document.getElementById("subtabs-bar");
+        bar.innerHTML = "";
+        const cat = data.categories.find(c => c.id === activeCategory);
+        if (!cat || searchTerm.trim()) {
+            bar.style.display = searchTerm.trim() ? "none" : "flex";
+            return;
+        }
+        bar.style.display = "flex";
+
+        const totalCount = data.notes.filter(n => n.categoryId === cat.id).length;
+        const allTab = document.createElement("button");
+        allTab.className = "subtab" + (activeSubTab === "" ? " active" : "");
+        allTab.innerHTML = `All<span class="subtab-count">${totalCount}</span>`;
+        allTab.addEventListener("click", () => {
+            activeSubTab = "";
+            renderSubtabs();
+            renderNoteList();
+        });
+        bar.appendChild(allTab);
+
+        cat.subtabs.forEach((sub, subIndex) => {
+            const count = data.notes.filter(n => n.categoryId === cat.id && n.subTab === sub).length;
+            const tab = document.createElement("button");
+            tab.className = "subtab" + (activeSubTab === sub ? " active" : "");
+            tab.draggable = true;
+            tab.innerHTML = `${sub}<span class="subtab-count">${count}</span>`;
+
+            const del = document.createElement("button");
+            del.className = "del-subtab";
+            del.textContent = "×";
+            del.addEventListener("click", (e) => {
+                e.stopPropagation();
+                confirmDialog("Delete subtab?", `"${sub}" will be removed.`, () => {
+                    cat.subtabs = cat.subtabs.filter(s => s !== sub);
+                    data.notes.forEach(n => {
+                        if (n.categoryId === cat.id && n.subTab === sub) n.subTab = "";
+                    });
+                    if (activeSubTab === sub) activeSubTab = "";
+                    save();
+                    renderSubtabs();
+                    renderNoteList();
+                });
+            });
+            tab.appendChild(del);
+
+            tab.addEventListener("click", () => {
+                activeSubTab = sub;
+                renderSubtabs();
+                renderNoteList();
+            });
+
+            tab.addEventListener("dragstart", () => {
+                dragSubIndex = subIndex;
+                tab.classList.add("dragging");
+            });
+            tab.addEventListener("dragend", () => {
+                tab.classList.remove("dragging");
+                bar.querySelectorAll(".subtab").forEach(el => el.classList.remove("drag-over"));
+            });
+            tab.addEventListener("dragover", (e) => { e.preventDefault(); tab.classList.add("drag-over"); });
+            tab.addEventListener("dragleave", () => tab.classList.remove("drag-over"));
+            tab.addEventListener("drop", (e) => {
+                e.preventDefault();
+                tab.classList.remove("drag-over");
+                if (dragSubIndex === null || dragSubIndex === subIndex) return;
+                const moved = cat.subtabs.splice(dragSubIndex, 1)[0];
+                cat.subtabs.splice(subIndex, 0, moved);
+                dragSubIndex = null;
+                save();
+                renderSubtabs();
+            });
+
+            bar.appendChild(tab);
+        });
+
+        const add = document.createElement("button");
+        add.className = "add-subtab";
+        add.textContent = "＋ Subtab";
+        add.addEventListener("click", () => {
+            const name = prompt("New subtab name:");
+            if (!name || !name.trim()) return;
+            if (!cat.subtabs.includes(name.trim())) cat.subtabs.push(name.trim());
+            activeSubTab = name.trim();
+            save();
+            renderSubtabs();
+            renderNoteList();
+        });
+        bar.appendChild(add);
+    }
+
+    let dragNoteIndex = null;
+
+    function renderNoteList() {
+        const container = document.getElementById("note-list");
+        const titleEl = document.getElementById("cat-title");
+        const subEl = document.getElementById("cat-subtitle");
+        const clearBtn = document.getElementById("clear-search");
+        container.innerHTML = "";
+
+        const cat = data.categories.find(c => c.id === activeCategory);
+        let filtered;
+
+        if (searchTerm.trim()) {
+            const term = searchTerm.trim().toLowerCase();
+            filtered = data.notes.filter(n =>
+                (n.title && n.title.toLowerCase().includes(term)) ||
+                (n.body && n.body.toLowerCase().includes(term))
+            );
+            titleEl.textContent = "Search results";
+            subEl.textContent = filtered.length + " match" + (filtered.length === 1 ? "" : "es");
+            clearBtn.style.display = "inline";
+        } else {
+            filtered = data.notes.filter(n => n.categoryId === activeCategory);
+            if (activeSubTab !== "") filtered = filtered.filter(n => n.subTab === activeSubTab);
+            titleEl.textContent = cat ? cat.name : "";
+            let sub = filtered.length + (filtered.length === 1 ? " entry" : " entries");
+            if (activeSubTab !== "") sub += " · " + activeSubTab;
+            subEl.textContent = sub;
+            clearBtn.style.display = "none";
+        }
+
+        if (filtered.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            empty.textContent = searchTerm ? "No matches." : "No entries yet.";
+            container.appendChild(empty);
+            return;
+        }
+
+        filtered.forEach(note => {
+            const item = document.createElement("div");
+            item.className = "note-list-item";
+            item.draggable = !searchTerm.trim() && !document.body.classList.contains("read-only");
+
+            const top = document.createElement("div");
+            top.className = "note-list-top";
+
+            const handle = document.createElement("span");
+            handle.className = "drag-handle";
+            handle.textContent = "⋮⋮";
+
+            const titleSpan = document.createElement("span");
+            titleSpan.className = "note-list-title";
+            titleSpan.textContent = note.title || "Untitled";
+
+            const dateSpan = document.createElement("span");
+            dateSpan.className = "note-list-date";
+            dateSpan.textContent = formatDate(note.created || note.id);
+
+            top.appendChild(handle);
+            top.appendChild(titleSpan);
+            top.appendChild(dateSpan);
+
+            const preview = document.createElement("div");
+            preview.className = "note-list-preview";
+            const tmp = document.createElement("div");
+            tmp.innerHTML = note.body || "";
+            preview.textContent = (tmp.textContent || "").slice(0, 140) || "No content yet…";
+
+            item.appendChild(top);
+            item.appendChild(preview);
+
+            if (note.subTab) {
+                const tags = document.createElement("div");
+                tags.className = "note-list-tags";
+                const subTag = document.createElement("span");
+                subTag.className = "note-sub-tag";
+                subTag.textContent = note.subTab;
+                tags.appendChild(subTag);
+                item.appendChild(tags);
+            }
+
+            item.addEventListener("click", () => openNote(note.id));
+
+            if (!searchTerm.trim()) {
+                item.addEventListener("dragstart", () => {
+                    dragNoteIndex = data.notes.indexOf(note);
+                    item.classList.add("dragging");
+                });
+                item.addEventListener("dragend", () => {
+                    item.classList.remove("dragging");
+                    container.querySelectorAll(".note-list-item").forEach(el => el.classList.remove("drag-over"));
+                });
+                item.addEventListener("dragover", (e) => { e.preventDefault(); item.classList.add("drag-over"); });
+                item.addEventListener("dragleave", () => item.classList.remove("drag-over"));
+                item.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    item.classList.remove("drag-over");
+                    const targetIndex = data.notes.indexOf(note);
+                    if (dragNoteIndex === null || dragNoteIndex === targetIndex) return;
+                    const moved = data.notes.splice(dragNoteIndex, 1)[0];
+                    data.notes.splice(targetIndex, 0, moved);
+                    dragNoteIndex = null;
+                    save();
+                    renderNoteList();
+                });
+            }
+
+            container.appendChild(item);
+        });
+    }
+
+    function renderEditor() {
+        const area = document.getElementById("editor-area");
+        area.innerHTML = "";
+
+        if (!activeNoteId) return;
+        const note = data.notes.find(n => n.id === activeNoteId);
+        if (!note) return;
+
+        const card = document.createElement("div");
+        card.className = "note";
+
+        const title = document.createElement("input");
+        title.className = "note-title";
+        title.type = "text";
+        title.placeholder = "Title";
+        title.value = note.title;
+        title.addEventListener("input", () => {
+            note.title = title.value;
+            save();
+            renderTabs();
+            renderNoteList();
+        });
+
+        const dateEl = document.createElement("div");
+        dateEl.className = "note-date";
+        dateEl.textContent = formatDate(note.created || note.id);
+
+        const toolbar = document.createElement("div");
+        toolbar.className = "editor-toolbar";
+        toolbar.innerHTML = `
+            <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+            <button type="button" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+            <div class="sep"></div>
+            <button type="button" data-cmd="formatBlock" data-value="h1" title="Heading 1">H1</button>
+            <button type="button" data-cmd="formatBlock" data-value="h2" title="Heading 2">H2</button>
+            <button type="button" data-cmd="formatBlock" data-value="blockquote" title="Quote">"</button>
+            <div class="sep"></div>
+            <button type="button" data-cmd="insertUnorderedList" title="Bullet list">•</button>
+            <button type="button" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+            <div class="sep"></div>
+            <button type="button" data-cmd="removeFormat" title="Clear formatting">✕</button>
+            <input type="color" value="#1e3a8a" title="Text colour">
+            <span class="word-count" id="word-count"></span>
+        `;
+
+        const body = document.createElement("div");
+        body.className = "note-body";
+        body.contentEditable = "true";
+        body.setAttribute("data-placeholder", "Write something…");
+        body.innerHTML = note.body;
+        body.addEventListener("input", () => {
+            note.body = body.innerHTML;
+            save();
+            updateWordCount();
+        });
+
+        function updateWordCount() {
+            const wc = document.getElementById("word-count");
+            if (wc) wc.textContent = countWords(note.body) + " words";
+        }
+
+        toolbar.querySelectorAll("button[data-cmd]").forEach(btn => {
+            btn.addEventListener("mousedown", e => {
+                e.preventDefault();
+                body.focus();
+                if (btn.dataset.cmd === "formatBlock") {
+                    document.execCommand("formatBlock", false, btn.dataset.value);
+                } else {
+                    document.execCommand(btn.dataset.cmd, false, null);
+                }
+                note.body = body.innerHTML;
+                save();
+                updateWordCount();
+            });
+        });
+
+        const colourInput = toolbar.querySelector('input[type="color"]');
+        colourInput.addEventListener("input", e => {
+            body.focus();
+            document.execCommand("foreColor", false, e.target.value);
+            note.body = body.innerHTML;
+            save();
+        });
+
+        const footer = document.createElement("div");
+        footer.className = "note-footer";
+
+        const tags = document.createElement("div");
+        tags.className = "note-tags";
+
+        const catTag = document.createElement("span");
+        catTag.className = "note-cat-tag";
+        const catObj = data.categories.find(c => c.id === note.categoryId);
+        catTag.textContent = catObj ? catObj.name : "";
+        tags.appendChild(catTag);
+
+        if (note.subTab) {
+            const subTag = document.createElement("span");
+            subTag.className = "note-sub-tag";
+            subTag.textContent = note.subTab;
+            tags.appendChild(subTag);
+        }
+
+        const del = document.createElement("button");
+        del.className = "del-note";
+        del.textContent = "DELETE ENTRY";
+        del.addEventListener("click", () => {
+            confirmDialog("Delete entry?", "This entry will be permanently removed.", () => {
+                const id = note.id;
+                data.notes = data.notes.filter(n => n.id !== id);
+                openNoteIds = openNoteIds.filter(x => x !== id);
+                if (activeNoteId === id) {
+                    activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
+                }
+                save();
+                saveOpen();
+                renderCategories();
+                renderSubtabs();
+                renderTabs();
+                renderNoteList();
+                renderEditor();
+            });
+        });
+
+        footer.appendChild(tags);
+        footer.appendChild(del);
+
+        card.appendChild(title);
+        card.appendChild(dateEl);
+        card.appendChild(toolbar);
+        card.appendChild(body);
+        card.appendChild(footer);
+
+        area.appendChild(card);
+
+        setTimeout(updateWordCount, 0);
+    }
+
+    document.getElementById("new-note-btn").addEventListener("click", () => {
+        if (searchTerm) {
+            searchTerm = "";
+            document.getElementById("search-input").value = "";
+        }
+        const newNote = {
+            id: Date.now(),
+            categoryId: activeCategory,
+            subTab: activeSubTab,
+            title: "",
+            body: "",
+            created: Date.now()
+        };
+        data.notes.unshift(newNote);
+        save();
+        renderCategories();
+        renderSubtabs();
+        renderNoteList();
+        openNote(newNote.id);
+    });
+
+    document.getElementById("add-cat-btn").addEventListener("click", () => {
+        const name = prompt("New category name:");
+        if (!name || !name.trim()) return;
+        const id = "cat-" + Date.now();
+        data.categories.push({ id: id, name: name.trim(), subtabs: [] });
+        activeCategory = id;
+        activeSubTab = "";
+        searchTerm = "";
+        document.getElementById("search-input").value = "";
+        save();
+        renderCategories();
+        renderSubtabs();
+        renderNoteList();
+    });
+
+    document.getElementById("search-input").addEventListener("input", (e) => {
+        searchTerm = e.target.value;
+        renderSubtabs();
+        renderNoteList();
+    });
+
+    document.getElementById("clear-search").addEventListener("click", () => {
+        searchTerm = "";
+        document.getElementById("search-input").value = "";
+        renderSubtabs();
+        renderNoteList();
+    });
+
+    document.getElementById("export-btn").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "yueliang-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("import-btn").addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+        input.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (imported.categories && imported.notes) {
+                        data = imported;
+                        save();
+                        activeCategory = data.categories[0].id;
+                        activeSubTab = "";
+                        openNoteIds = [];
+                        activeNoteId = null;
+                        saveOpen();
+                        renderCategories();
+                        renderSubtabs();
+                        renderTabs();
+                        renderNoteList();
+                        renderEditor();
+                    }
+                } catch (err) {
+                    alert("Invalid file.");
+                }
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+    });
+
+    const target = new Date("2026-11-01T00:00:00+08:00").getTime();
+    const el = document.getElementById("countdown");
+
+    function updateCountdown() {
+        const diff = target - Date.now();
+        if (diff <= 0) {
+            el.textContent = "IT'S TIME — 走吧！";
+            return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / (1000 * 60)) % 60);
+        el.textContent = `${days}D · ${hours}H · ${mins}M TO SHANGHAI`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 60000);
+
+    renderCategories();
+    renderSubtabs();
+    renderTabs();
+    renderNoteList();
+    renderEditor();
+
+    // PWA service worker registration
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+</script>
+
+</body>
+</html>
