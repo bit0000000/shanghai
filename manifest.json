@@ -1,0 +1,26 @@
+{
+  "name": "Yueliang — Shanghai Journal",
+  "short_name": "Yueliang",
+  "description": "A quiet journal for the Shanghai trip, November 2026.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7fb",
+  "theme_color": "#1e3a8a",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
