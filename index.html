@@ -1,1731 +1,956 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yueliang</title>
-
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3a8a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Yueliang">
-    <link rel="icon" href="icon.png">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --bg: #f5f7fb;
-            --sidebar: #e8edf7;
-            --card: #ffffff;
-            --text: #0f1e3d;
-            --muted: #6a7a99;
-            --accent: #1e3a8a;
-            --accent-hover: #172a63;
-            --accent-soft: #dde6f7;
-            --line: #d4dced;
-            --radius: 16px;
-            --sidebar-width: 250px;
-            --tabs-bg: #e2e8f4;
-            --hover: rgba(30, 58, 138, 0.06);
-            --danger: #b91c1c;
-        }
-
-        body.dark {
-            --bg: #0a1226;
-            --sidebar: #0f1a36;
-            --card: #14203f;
-            --text: #e2e8f7;
-            --muted: #8291b3;
-            --accent: #4a7bd4;
-            --accent-hover: #5f8ee0;
-            --accent-soft: #1a2a52;
-            --line: #24315a;
-            --tabs-bg: #0f1a36;
-            --hover: rgba(120, 160, 220, 0.08);
-            --danger: #ef4444;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            transition: background 0.25s, color 0.25s;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .layout { display: flex; height: 100vh; overflow: hidden; }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--sidebar);
-            border-right: 1px solid var(--line);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: width 0.22s ease, background 0.25s;
-            overflow: hidden;
-        }
-
-        .sidebar.collapsed { width: 56px; }
-
-        .sidebar-header {
-            padding: 16px 14px 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
-        }
-
-        .sidebar-title-block { overflow: hidden; white-space: nowrap; }
-        .sidebar-header h1 {
-            font-size: 0.95rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-            margin-bottom: 2px;
-            color: var(--accent);
-        }
-        .sidebar-header p {
-            font-size: 0.66rem;
-            color: var(--muted);
-            font-weight: 600;
-            letter-spacing: 0.08em;
-        }
-
-        .header-buttons { display: flex; gap: 4px; flex-shrink: 0; }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--muted);
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: inherit;
-            transition: 0.12s;
-        }
-
-        .icon-btn:hover { background: var(--hover); color: var(--accent); }
-        .icon-btn.active { background: var(--accent); color: #fff; }
-
-        .sidebar.collapsed .sidebar-title-block { display: none; }
-        .sidebar.collapsed .sidebar-header { justify-content: center; padding: 16px 0 10px; flex-direction: column; }
-        .sidebar.collapsed .header-buttons { flex-direction: column; }
-
-        .sidebar-search { padding: 0 12px 10px; }
-        .sidebar.collapsed .sidebar-search { display: none; }
-
-        .search-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            font-size: 0.78rem;
-            font-family: 'Roboto Mono', monospace;
-            background: var(--card);
-            color: var(--text);
-            transition: 0.15s;
-        }
-
-        .search-input:focus { outline: none; border-color: var(--accent); }
-
-        .sidebar-actions { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 6px; }
-        .sidebar.collapsed .sidebar-actions { display: none; }
-
-        .new-note-btn {
-            width: 100%;
-            padding: 10px 14px;
-            border: none;
-            border-radius: 10px;
-            background: var(--accent);
-            color: #fff;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            text-align: left;
-            letter-spacing: 0.06em;
-            transition: 0.15s;
-        }
-
-        .new-note-btn:hover { background: var(--accent-hover); }
-
-        .export-btn {
-            width: 100%;
-            padding: 8px 14px;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            background: var(--card);
-            color: var(--text);
-            font-size: 0.72rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            text-align: left;
-            letter-spacing: 0.05em;
-            transition: 0.15s;
-        }
-
-        .export-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-        .cat-list { flex: 1; overflow-y: auto; padding: 6px 8px; }
-
-        .cat-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 9px 10px;
-            margin-bottom: 2px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: 500;
-            cursor: pointer;
-            color: var(--text);
-            transition: 0.12s;
-        }
-
-        .cat-item:hover { background: var(--hover); }
-        .cat-item.active { background: var(--accent); color: #fff; }
-        .cat-item.dragging { opacity: 0.4; }
-        .cat-item.drag-over { border-top: 2px solid var(--accent); margin-top: -2px; }
-
-        .drag-handle { cursor: grab; font-size: 0.7rem; color: var(--muted); padding: 0 4px 0 0; user-select: none; flex-shrink: 0; }
-        .cat-item.active .drag-handle { color: rgba(255,255,255,0.7); }
-
-        .cat-item .cat-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .cat-item .cat-count {
-            font-size: 0.66rem;
-            opacity: 0.55;
-            margin-left: 8px;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .cat-item .del-cat {
-            background: none; border: none; color: inherit; opacity: 0; cursor: pointer;
-            font-size: 0.9rem; padding: 0 2px; margin-left: 4px; line-height: 1;
-        }
-
-        .cat-item:hover .del-cat { opacity: 0.5; }
-        .cat-item .del-cat:hover { opacity: 1; color: #ff6b66; }
-
-        .sidebar.collapsed .cat-item { justify-content: center; padding: 9px 0; font-size: 0.7rem; font-weight: 600; }
-        .sidebar.collapsed .cat-item .cat-name { flex: none; max-width: 36px; text-align: center; letter-spacing: 0.5px; }
-        .sidebar.collapsed .cat-item .cat-count,
-        .sidebar.collapsed .cat-item .del-cat,
-        .sidebar.collapsed .drag-handle { display: none; }
-
-        .sidebar-footer { padding: 10px 12px 16px; border-top: 1px solid var(--line); }
-        .sidebar.collapsed .sidebar-footer { display: none; }
-
-        .add-cat-btn {
-            width: 100%; padding: 8px 12px; border: 1px dashed var(--line); border-radius: 10px;
-            background: none; font-size: 0.72rem; cursor: pointer; font-family: inherit; color: var(--muted);
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-
-        .add-cat-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-        /* MAIN */
-        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-        .note-tabs {
-            display: flex;
-            align-items: center;
-            background: var(--tabs-bg);
-            border-bottom: 1px solid var(--line);
-            padding: 0 8px;
-            height: 40px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            flex-shrink: 0;
-        }
-
-        .note-tabs::-webkit-scrollbar { height: 3px; }
-        .note-tabs::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
-
-        .note-tab {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 10px 7px 14px;
-            margin: 0 2px;
-            border-radius: 10px 10px 0 0;
-            font-size: 0.74rem;
-            font-weight: 500;
-            cursor: pointer;
-            background: transparent;
-            color: var(--muted);
-            white-space: nowrap;
-            max-width: 200px;
-            transition: 0.12s;
-            border: 1px solid transparent;
-            border-bottom: none;
-            position: relative;
-            top: 1px;
-        }
-
-        .note-tab:hover { background: var(--hover); }
-
-        .note-tab.active {
-            background: var(--bg);
-            color: var(--accent);
-            border-color: var(--line);
-            font-weight: 700;
-        }
-
-        .note-tab .tab-name { overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-
-        .note-tab .tab-close {
-            background: none; border: none; color: inherit; opacity: 0.4;
-            cursor: pointer; font-size: 0.9rem; padding: 0 2px; line-height: 1; border-radius: 3px;
-        }
-
-        .note-tab .tab-close:hover { opacity: 1; background: var(--hover); }
-
-        .no-tabs { padding: 0 12px; font-size: 0.74rem; color: var(--muted); font-style: italic; }
-
-        .main-scroll { flex: 1; overflow-y: auto; padding: 28px 32px 60px; }
-
-        .main-inner { max-width: 680px; margin: 0 auto; }
-
-        .countdown {
-            background: var(--accent);
-            color: #fff;
-            padding: 10px 16px;
-            border-radius: 12px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            display: inline-block;
-            margin-bottom: 22px;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .main-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-
-        .main-header-text h2 {
-            font-size: 1.45rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--accent);
-        }
-        .main-header-text p {
-            font-size: 0.74rem;
-            color: var(--muted);
-            margin-top: 3px;
-            font-weight: 500;
-            letter-spacing: 0.03em;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .clear-search {
-            font-size: 0.74rem; color: var(--accent); background: none; border: none;
-            cursor: pointer; font-family: inherit; text-decoration: underline;
-            font-weight: 600;
-        }
-
-        .subtabs {
-            display: flex; flex-wrap: wrap; gap: 6px;
-            margin-bottom: 20px; padding-bottom: 14px;
-            border-bottom: 1px solid var(--line);
-            align-items: center;
-        }
-
-        .subtab {
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--line);
-            background: var(--card);
-            font-size: 0.72rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            color: var(--text);
-            transition: 0.12s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            user-select: none;
-            letter-spacing: 0.02em;
-        }
-
-        .subtab:hover { background: var(--accent-soft); }
-
-        .subtab.active {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
-        .subtab.dragging { opacity: 0.4; }
-        .subtab.drag-over { border-left: 2px solid var(--accent); padding-left: 10px; }
-
-        .subtab .subtab-count {
-            opacity: 0.65;
-            font-size: 0.66rem;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .subtab .del-subtab {
-            background: none; border: none; color: inherit; opacity: 0;
-            cursor: pointer; font-size: 0.85rem; padding: 0; margin-left: 2px; line-height: 1;
-        }
-
-        .subtab:hover .del-subtab { opacity: 0.5; }
-        .subtab .del-subtab:hover { opacity: 1; color: #ff6b66; }
-
-        .add-subtab {
-            padding: 5px 12px; border-radius: 20px; border: 1px dashed var(--line);
-            background: none; font-size: 0.72rem; cursor: pointer; font-family: inherit; color: var(--muted);
-            font-weight: 600;
-            letter-spacing: 0.03em;
-        }
-
-        .add-subtab:hover { border-color: var(--accent); color: var(--accent); }
-
-        .note-list-item {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 18px 20px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            user-select: none;
-        }
-
-        .note-list-item:hover { border-color: var(--accent); transform: translateY(-1px); }
-
-        .note-list-item.dragging { opacity: 0.4; }
-        .note-list-item.drag-over { border-top: 2px solid var(--accent); margin-top: -2px; }
-
-        .note-list-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .note-list-item .drag-handle {
-            padding: 0 6px 0 0;
-            align-self: center;
-            opacity: 0.5;
-        }
-
-        .note-list-item .note-list-title {
-            font-size: 0.96rem; font-weight: 600; flex: 1;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-            letter-spacing: -0.01em;
-            color: var(--accent);
-        }
-
-        .note-list-item .note-list-date {
-            font-size: 0.68rem;
-            color: var(--muted);
-            white-space: nowrap;
-            flex-shrink: 0;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .note-list-item .note-list-preview {
-            font-size: 0.78rem; color: var(--muted);
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            line-height: 1.5;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .note-list-item .note-list-tags {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 2px;
-        }
-
-        .note {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 28px 32px;
-            margin-bottom: 18px;
-        }
-
-        .note-title {
-            width: 100%; border: none;
-            font-size: 1.5rem; font-weight: 700;
-            font-family: 'Montserrat', sans-serif; color: var(--accent);
-            padding: 0; margin-bottom: 6px;
-            background: transparent;
-            letter-spacing: -0.02em;
-        }
-
-        .note-title:focus { outline: none; }
-        .note-title::placeholder { color: var(--muted); opacity: 0.5; }
-
-        .note-date {
-            font-size: 0.7rem;
-            color: var(--muted);
-            margin-bottom: 16px;
-            font-family: 'Roboto Mono', monospace;
-            letter-spacing: 0.04em;
-            font-weight: 500;
-        }
-
-        .editor-toolbar {
-            display: flex; flex-wrap: wrap; gap: 4px;
-            padding: 8px 0;
-            border-top: 1px solid var(--line);
-            border-bottom: 1px solid var(--line);
-            margin-bottom: 18px;
-            align-items: center;
-        }
-
-        .editor-toolbar button {
-            border: none;
-            background: none;
-            border-radius: 8px; padding: 6px 10px;
-            font-size: 0.85rem;
-            cursor: pointer; font-family: inherit;
-            color: var(--text);
-            min-width: 32px;
-            transition: 0.12s;
-            font-weight: 500;
-        }
-
-        .editor-toolbar button:hover { background: var(--hover); color: var(--accent); }
-
-        .editor-toolbar .sep { width: 1px; background: var(--line); margin: 4px 4px; align-self: stretch; }
-
-        .editor-toolbar input[type="color"] {
-            width: 28px; height: 28px; border: none;
-            border-radius: 8px; cursor: pointer; background: none; padding: 2px;
-        }
-
-        .word-count {
-            margin-left: auto;
-            font-size: 0.68rem;
-            color: var(--muted);
-            font-family: 'Roboto Mono', monospace;
-            letter-spacing: 0.03em;
-        }
-
-        .note-body {
-            min-height: 300px;
-            font-size: 0.92rem;
-            line-height: 1.85;
-            font-family: 'Roboto Mono', monospace;
-            padding: 0;
-            outline: none;
-            color: var(--text);
-        }
-
-        .note-body:empty:before { content: attr(data-placeholder); color: var(--muted); opacity: 0.5; }
-
-        .note-body ul, .note-body ol { padding-left: 24px; margin: 8px 0; }
-        .note-body li { margin: 4px 0; }
-
-        .note-body blockquote {
-            border-left: 3px solid var(--accent);
-            padding-left: 14px;
-            margin: 10px 0;
-            color: var(--muted);
-            font-style: italic;
-        }
-
-        .note-body h1, .note-body h2, .note-body h3 {
-            font-family: 'Montserrat', sans-serif;
-            color: var(--accent);
-            margin: 14px 0 6px;
-            letter-spacing: -0.01em;
-        }
-
-        .note-body h1 { font-size: 1.4rem; }
-        .note-body h2 { font-size: 1.15rem; }
-        .note-body h3 { font-size: 1rem; }
-
-        .note-footer {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 24px; padding-top: 16px;
-            border-top: 1px solid var(--line);
-            font-size: 0.72rem; color: var(--muted); flex-wrap: wrap; gap: 8px;
-        }
-
-        .del-note {
-            background: none;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            color: var(--danger);
-            font-size: 0.7rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            padding: 6px 12px;
-            transition: 0.15s;
-            letter-spacing: 0.06em;
-        }
-
-        .del-note:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-
-        .note-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-
-        .note-cat-tag, .note-sub-tag {
-            font-size: 0.66rem; padding: 3px 10px; border-radius: 20px;
-            background: var(--accent-soft); color: var(--accent);
-            font-weight: 700;
-            letter-spacing: 0.04em;
-        }
-
-        .note-sub-tag { background: var(--sidebar); color: var(--muted); }
-
-        body.read-only .editor-toolbar,
-        body.read-only .del-note,
-        body.read-only .new-note-btn,
-        body.read-only .add-cat-btn,
-        body.read-only .add-subtab,
-        body.read-only .del-cat,
-        body.read-only .del-subtab,
-        body.read-only .drag-handle,
-        body.read-only .export-btn {
-            display: none !important;
-        }
-
-        body.read-only .note-body,
-        body.read-only .note-title {
-            caret-color: transparent;
-            pointer-events: none;
-            user-select: text;
-        }
-
-        body.read-only .note-list-item { cursor: pointer; }
-
-        .read-only-badge {
-            position: fixed;
-            bottom: 16px;
-            right: 16px;
-            background: var(--accent);
-            color: #fff;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 0.68rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            font-family: 'Roboto Mono', monospace;
-            display: none;
-            z-index: 100;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-        }
-
-        body.read-only .read-only-badge { display: block; }
-
-        .confirm-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.15s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .confirm-box {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 320px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .confirm-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
-        .confirm-box p { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
-        .confirm-actions { display: flex; gap: 8px; }
-        .confirm-actions button {
-            flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.12s;
-            letter-spacing: 0.04em;
-        }
-        .btn-cancel { background: var(--sidebar); color: var(--text); }
-        .btn-cancel:hover { background: var(--line); }
-        .btn-delete { background: var(--danger); color: #fff; }
-        .btn-delete:hover { opacity: 0.9; }
-
-        /* EXPORT TO DOCS modal */
-        .docs-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(10, 18, 38, 0.55);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 20px;
-            animation: fadeIn 0.15s ease;
-        }
-        .docs-overlay.open { display: flex; }
-
-        .docs-modal {
-            background: var(--card);
-            border-radius: 16px;
-            max-width: 720px;
-            width: 100%;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.35);
-        }
-
-        .docs-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .docs-header h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--accent);
-            letter-spacing: -0.01em;
-        }
-        .docs-close {
-            background: none;
-            border: none;
-            font-size: 1.4rem;
-            color: var(--muted);
-            cursor: pointer;
-            line-height: 1;
-            padding: 4px 8px;
-            border-radius: 8px;
-        }
-        .docs-close:hover { background: var(--hover); color: var(--text); }
-
-        .docs-hint {
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-bottom: 14px;
-            line-height: 1.55;
-        }
-
-        .docs-output {
-            flex: 1;
-            min-height: 300px;
-            padding: 14px;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 0.78rem;
-            line-height: 1.7;
-            color: var(--text);
-            background: var(--bg);
-            resize: none;
-            outline: none;
-        }
-        .docs-output:focus { border-color: var(--accent); }
-
-        .docs-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-
-        .docs-btn {
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.76rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            transition: 0.12s;
-            border: none;
-        }
-        .docs-btn.primary {
-            background: var(--accent);
-            color: #fff;
-        }
-        .docs-btn.primary:hover { background: var(--accent-hover); }
-        .docs-btn.secondary {
-            background: var(--card);
-            border: 1px solid var(--line);
-            color: var(--text);
-        }
-        .docs-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
-
-        .docs-status {
-            font-size: 0.72rem;
-            color: var(--muted);
-            margin-top: 10px;
-            min-height: 1.1em;
-            font-family: 'Roboto Mono', monospace;
-        }
-        .docs-status.success { color: #1a7f37; }
-        .docs-status.error { color: var(--danger); }
-
-        @media (max-width: 700px) {
-            .layout { flex-direction: column; height: auto; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--line); }
-            .sidebar.collapsed { width: 100%; }
-            .sidebar.collapsed .sidebar-title-block,
-            .sidebar.collapsed .sidebar-search,
-            .sidebar.collapsed .sidebar-actions,
-            .sidebar.collapsed .sidebar-footer { display: block; }
-            .sidebar.collapsed .cat-item { justify-content: space-between; padding: 9px 10px; font-size: 0.82rem; font-weight: 500; }
-            .sidebar.collapsed .cat-item .cat-name { flex: 1; max-width: none; text-align: left; letter-spacing: 0; }
-            .sidebar.collapsed .cat-item .cat-count { display: inline; }
-            .cat-list { max-height: 160px; }
-            .main-scroll { padding: 20px 16px 60px; }
-            .note { padding: 20px; }
-            .note-title { font-size: 1.25rem; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yueliang</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e3a8a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Yueliang">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f7fb;--sidebar:#e8edf7;--card:#fff;--text:#0f1e3d;--muted:#6a7a99;--accent:#1e3a8a;--accent-hover:#172a63;--accent-soft:#dde6f7;--line:#d4dced;--radius:16px;--sidebar-width:250px;--tabs-bg:#e2e8f4;--hover:rgba(30,58,138,.06);--danger:#b91c1c}
+body.dark{--bg:#0a1226;--sidebar:#0f1a36;--card:#14203f;--text:#e2e8f7;--muted:#8291b3;--accent:#4a7bd4;--accent-hover:#5f8ee0;--accent-soft:#1a2a52;--line:#24315a;--tabs-bg:#0f1a36;--hover:rgba(120,160,220,.08);--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased}
+.layout{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar-width);background:var(--sidebar);border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;transition:width .22s ease;overflow:hidden}
+.sidebar.collapsed{width:56px}
+.sidebar-header{padding:16px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.sidebar-title-block{overflow:hidden;white-space:nowrap}
+.sidebar-header h1{font-size:.95rem;font-weight:700;letter-spacing:-.01em;margin-bottom:2px;color:var(--accent)}
+.sidebar-header p{font-size:.66rem;color:var(--muted);font-weight:600;letter-spacing:.08em}
+.header-buttons{display:flex;gap:4px;flex-shrink:0}
+.icon-btn{background:none;border:none;width:28px;height:28px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:.9rem;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:.12s}
+.icon-btn:hover{background:var(--hover);color:var(--accent)}
+.icon-btn.active{background:var(--accent);color:#fff}
+.sidebar.collapsed .sidebar-title-block{display:none}
+.sidebar.collapsed .sidebar-header{justify-content:center;padding:16px 0 10px;flex-direction:column}
+.sidebar.collapsed .header-buttons{flex-direction:column}
+.sidebar-search{padding:0 12px 10px}
+.sidebar.collapsed .sidebar-search{display:none}
+.search-input{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:.78rem;font-family:'Roboto Mono',monospace;background:var(--card);color:var(--text)}
+.search-input:focus{outline:none;border-color:var(--accent)}
+.sidebar-actions{padding:0 12px 12px;display:flex;flex-direction:column;gap:6px}
+.sidebar.collapsed .sidebar-actions{display:none}
+.new-note-btn{width:100%;padding:10px 14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;letter-spacing:.06em}
+.new-note-btn:hover{background:var(--accent-hover)}
+.export-btn{width:100%;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;letter-spacing:.05em;transition:.15s}
+.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sync-status{font-size:.62rem;font-family:'Roboto Mono',monospace;color:var(--muted);padding:4px 2px 0;letter-spacing:.04em;min-height:1em;text-align:center}
+.sync-status.syncing{color:var(--accent)}
+.sync-status.saved{color:#1a7f37}
+.sync-status.offline{color:#c77700}
+.sync-status.error{color:var(--danger)}
+.cat-list{flex:1;overflow-y:auto;padding:6px 8px}
+.cat-item{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;margin-bottom:2px;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;color:var(--text);transition:.12s}
+.cat-item:hover{background:var(--hover)}
+.cat-item.active{background:var(--accent);color:#fff}
+.cat-item.dragging{opacity:.4}
+.cat-item.drag-over{border-top:2px solid var(--accent);margin-top:-2px}
+.drag-handle{cursor:grab;font-size:.7rem;color:var(--muted);padding:0 4px 0 0;user-select:none;flex-shrink:0}
+.cat-item.active .drag-handle{color:rgba(255,255,255,.7)}
+.cat-item .cat-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-item .cat-count{font-size:.66rem;opacity:.55;margin-left:8px;font-family:'Roboto Mono',monospace}
+.cat-item .del-cat{background:none;border:none;color:inherit;opacity:0;cursor:pointer;font-size:.9rem;padding:0 2px;margin-left:4px;line-height:1}
+.cat-item:hover .del-cat{opacity:.5}
+.cat-item .del-cat:hover{opacity:1;color:#ff6b66}
+.sidebar.collapsed .cat-item{justify-content:center;padding:9px 0;font-size:.7rem;font-weight:600}
+.sidebar.collapsed .cat-item .cat-name{flex:none;max-width:36px;text-align:center;letter-spacing:.5px}
+.sidebar.collapsed .cat-item .cat-count,.sidebar.collapsed .cat-item .del-cat,.sidebar.collapsed .drag-handle{display:none}
+.sidebar-footer{padding:10px 12px 16px;border-top:1px solid var(--line)}
+.sidebar.collapsed .sidebar-footer{display:none}
+.add-cat-btn{width:100%;padding:8px 12px;border:1px dashed var(--line);border-radius:10px;background:none;font-size:.72rem;cursor:pointer;font-family:inherit;color:var(--muted);font-weight:600;letter-spacing:.05em}
+.add-cat-btn:hover{border-color:var(--accent);color:var(--accent)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.note-tabs{display:flex;align-items:center;background:var(--tabs-bg);border-bottom:1px solid var(--line);padding:0 8px;height:40px;overflow-x:auto;overflow-y:hidden;flex-shrink:0}
+.note-tabs::-webkit-scrollbar{height:3px}
+.note-tabs::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.note-tab{display:flex;align-items:center;gap:6px;padding:7px 10px 7px 14px;margin:0 2px;border-radius:10px 10px 0 0;font-size:.74rem;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);white-space:nowrap;max-width:200px;transition:.12s;border:1px solid transparent;border-bottom:none;position:relative;top:1px}
+.note-tab:hover{background:var(--hover)}
+.note-tab.active{background:var(--bg);color:var(--accent);border-color:var(--line);font-weight:700}
+.note-tab .tab-name{overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.note-tab .tab-close{background:none;border:none;color:inherit;opacity:.4;cursor:pointer;font-size:.9rem;padding:0 2px;line-height:1;border-radius:3px}
+.note-tab .tab-close:hover{opacity:1;background:var(--hover)}
+.no-tabs{padding:0 12px;font-size:.74rem;color:var(--muted);font-style:italic}
+.main-scroll{flex:1;overflow-y:auto;padding:28px 32px 60px}
+.main-inner{max-width:680px;margin:0 auto}
+.countdown{background:var(--accent);color:#fff;padding:10px 16px;border-radius:12px;font-size:.72rem;font-weight:600;letter-spacing:.06em;display:inline-block;margin-bottom:22px;font-family:'Roboto Mono',monospace}
+.main-header-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.main-header-text h2{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;color:var(--accent)}
+.main-header-text p{font-size:.74rem;color:var(--muted);margin-top:3px;font-weight:500;letter-spacing:.03em;font-family:'Roboto Mono',monospace}
+.clear-search{font-size:.74rem;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;font-weight:600}
+.subtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--line);align-items:center}
+.subtab{padding:5px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);transition:.12s;display:flex;align-items:center;gap:5px;user-select:none}
+.subtab:hover{background:var(--accent-soft)}
+.subtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.subtab.dragging{opacity:.4}
+.subtab.drag-over{border-left:2px solid var(--accent);padding-left:10px}
+.subtab .subtab-count{opacity:.65;font-size:.66rem;font-family:'Roboto Mono',monospace}
+.subtab .del-subtab{background:none;border:none;color:inherit;opacity:0;cursor:pointer;font-size:.85rem;padding:0;margin-left:2px;line-height:1}
+.subtab:hover .del-subtab{opacity:.5}
+.subtab .del-subtab:hover{opacity:1;color:#ff6b66}
+.add-subtab{padding:5px 12px;border-radius:20px;border:1px dashed var(--line);background:none;font-size:.72rem;cursor:pointer;font-family:inherit;color:var(--muted);font-weight:600}
+.add-subtab:hover{border-color:var(--accent);color:var(--accent)}
+.note-list-item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:6px;user-select:none}
+.note-list-item:hover{border-color:var(--accent);transform:translateY(-1px)}
+.note-list-item.dragging{opacity:.4}
+.note-list-item.drag-over{border-top:2px solid var(--accent);margin-top:-2px}
+.note-list-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.note-list-item .drag-handle{padding:0 6px 0 0;align-self:center;opacity:.5}
+.note-list-item .note-list-title{font-size:.96rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.01em;color:var(--accent)}
+.note-list-item .note-list-date{font-size:.68rem;color:var(--muted);white-space:nowrap;flex-shrink:0;font-family:'Roboto Mono',monospace}
+.note-list-item .note-list-preview{font-size:.78rem;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5;font-family:'Roboto Mono',monospace}
+.note-list-item .note-list-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px 32px;margin-bottom:18px}
+.note-title{width:100%;border:none;font-size:1.5rem;font-weight:700;font-family:'Montserrat',sans-serif;color:var(--accent);padding:0;margin-bottom:6px;background:transparent;letter-spacing:-.02em}
+.note-title:focus{outline:none}
+.note-title::placeholder{color:var(--muted);opacity:.5}
+.note-date{font-size:.7rem;color:var(--muted);margin-bottom:16px;font-family:'Roboto Mono',monospace;letter-spacing:.04em;font-weight:500}
+.editor-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:18px;align-items:center}
+.editor-toolbar button{border:none;background:none;border-radius:8px;padding:6px 10px;font-size:.85rem;cursor:pointer;font-family:inherit;color:var(--text);min-width:32px;transition:.12s;font-weight:500}
+.editor-toolbar button:hover{background:var(--hover);color:var(--accent)}
+.editor-toolbar .sep{width:1px;background:var(--line);margin:4px 4px;align-self:stretch}
+.editor-toolbar input[type="color"]{width:28px;height:28px;border:none;border-radius:8px;cursor:pointer;background:none;padding:2px}
+.word-count{margin-left:auto;font-size:.68rem;color:var(--muted);font-family:'Roboto Mono',monospace;letter-spacing:.03em}
+.note-body{min-height:300px;font-size:.92rem;line-height:1.85;font-family:'Roboto Mono',monospace;padding:0;outline:none;color:var(--text)}
+.note-body:empty:before{content:attr(data-placeholder);color:var(--muted);opacity:.5}
+.note-body ul,.note-body ol{padding-left:24px;margin:8px 0}
+.note-body li{margin:4px 0}
+.note-body blockquote{border-left:3px solid var(--accent);padding-left:14px;margin:10px 0;color:var(--muted);font-style:italic}
+.note-body h1,.note-body h2,.note-body h3{font-family:'Montserrat',sans-serif;color:var(--accent);margin:14px 0 6px;letter-spacing:-.01em}
+.note-body h1{font-size:1.4rem}
+.note-body h2{font-size:1.15rem}
+.note-body h3{font-size:1rem}
+.note-footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);font-size:.72rem;color:var(--muted);flex-wrap:wrap;gap:8px}
+.del-note{background:none;border:1px solid var(--line);border-radius:8px;color:var(--danger);font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;padding:6px 12px;transition:.15s;letter-spacing:.06em}
+.del-note:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.note-tags{display:flex;gap:6px;flex-wrap:wrap}
+.note-cat-tag,.note-sub-tag{font-size:.66rem;padding:3px 10px;border-radius:20px;background:var(--accent-soft);color:var(--accent);font-weight:700;letter-spacing:.04em}
+.note-sub-tag{background:var(--sidebar);color:var(--muted)}
+body.read-only .editor-toolbar,body.read-only .del-note,body.read-only .new-note-btn,body.read-only .add-cat-btn,body.read-only .add-subtab,body.read-only .del-cat,body.read-only .del-subtab,body.read-only .drag-handle,body.read-only .export-btn{display:none!important}
+body.read-only .note-body,body.read-only .note-title{caret-color:transparent;pointer-events:none;user-select:text}
+body.read-only .note-list-item{cursor:pointer}
+.read-only-badge{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#fff;padding:8px 14px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.06em;font-family:'Roboto Mono',monospace;display:none;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+body.read-only .read-only-badge{display:block}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.confirm-box{background:var(--card);border-radius:16px;padding:24px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.confirm-box h3{font-size:1rem;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.confirm-box p{font-size:.8rem;color:var(--muted);margin-bottom:20px}
+.confirm-actions{display:flex;gap:8px}
+.confirm-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.04em}
+.btn-cancel{background:var(--sidebar);color:var(--text)}
+.btn-cancel:hover{background:var(--line)}
+.btn-delete{background:var(--danger);color:#fff}
+.btn-delete:hover{opacity:.9}
+.docs-overlay{position:fixed;inset:0;background:rgba(10,18,38,.55);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;animation:fadeIn .15s ease}
+.docs-overlay.open{display:flex}
+.docs-modal{background:var(--card);border-radius:16px;max-width:720px;width:100%;max-height:85vh;display:flex;flex-direction:column;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.docs-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.docs-header h3{font-size:1.05rem;font-weight:700;color:var(--accent);letter-spacing:-.01em}
+.docs-close{background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:pointer;line-height:1;padding:4px 8px;border-radius:8px}
+.docs-close:hover{background:var(--hover);color:var(--text)}
+.docs-hint{font-size:.78rem;color:var(--muted);margin-bottom:14px;line-height:1.55}
+.docs-output{flex:1;min-height:300px;padding:14px;border:1px solid var(--line);border-radius:12px;font-family:'Roboto Mono',monospace;font-size:.78rem;line-height:1.7;color:var(--text);background:var(--bg);resize:none;outline:none}
+.docs-output:focus{border-color:var(--accent)}
+.docs-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.docs-btn{padding:10px 16px;border-radius:10px;font-family:inherit;font-size:.76rem;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:.12s;border:none}
+.docs-btn.primary{background:var(--accent);color:#fff}
+.docs-btn.primary:hover{background:var(--accent-hover)}
+.docs-btn.secondary{background:var(--card);border:1px solid var(--line);color:var(--text)}
+.docs-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.docs-status{font-size:.72rem;color:var(--muted);margin-top:10px;min-height:1.1em;font-family:'Roboto Mono',monospace}
+.docs-status.success{color:#1a7f37}
+.docs-status.error{color:var(--danger)}
+.empty{text-align:center;color:var(--muted);font-size:.85rem;padding:60px 20px;font-style:italic;font-family:'Roboto Mono',monospace}
+@media (max-width:700px){.layout{flex-direction:column;height:auto}.sidebar{width:100%;border-right:none;border-bottom:1px solid var(--line)}.sidebar.collapsed{width:100%}.sidebar.collapsed .sidebar-title-block,.sidebar.collapsed .sidebar-search,.sidebar.collapsed .sidebar-actions,.sidebar.collapsed .sidebar-footer{display:block}.sidebar.collapsed .cat-item{justify-content:space-between;padding:9px 10px;font-size:.82rem;font-weight:500}.sidebar.collapsed .cat-item .cat-name{flex:1;max-width:none;text-align:left;letter-spacing:0}.sidebar.collapsed .cat-item .cat-count{display:inline}.cat-list{max-height:160px}.main-scroll{padding:20px 16px 60px}.note{padding:20px}.note-title{font-size:1.25rem}}
+</style>
 </head>
 <body>
-
 <div class="layout">
-
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title-block">
-                <h1>Yueliang</h1>
-                <p>NOV 2026</p>
-            </div>
-            <div class="header-buttons">
-                <button class="icon-btn" id="readonly-btn" title="Read-only">👁</button>
-                <button class="icon-btn" id="theme-btn" title="Dark mode">☾</button>
-                <button class="icon-btn" id="collapse-btn" title="Collapse">«</button>
-            </div>
-        </div>
-
-        <div class="sidebar-search">
-            <input type="text" class="search-input" id="search-input" placeholder="Search…">
-        </div>
-
-        <div class="sidebar-actions">
-            <button class="new-note-btn" id="new-note-btn">＋ NEW ENTRY</button>
-            <button class="export-btn" id="export-btn">↓ EXPORT BACKUP</button>
-            <button class="export-btn" id="import-btn">↑ IMPORT BACKUP</button>
-            <button class="export-btn" id="docs-btn">📄 EXPORT TO DOCS</button>
-        </div>
-
-        <div class="cat-list" id="cat-list"></div>
-
-        <div class="sidebar-footer">
-            <button class="add-cat-btn" id="add-cat-btn">＋ NEW CATEGORY</button>
-        </div>
-    </aside>
-
-    <main class="main">
-        <div class="note-tabs" id="note-tabs"></div>
-
-        <div class="main-scroll">
-            <div class="main-inner">
-                <div class="countdown" id="countdown">Counting down…</div>
-
-                <div class="main-header-row">
-                    <div class="main-header-text">
-                        <h2 id="cat-title">General</h2>
-                        <p id="cat-subtitle">0 entries</p>
-                    </div>
-                    <button class="clear-search" id="clear-search" style="display:none;">Clear search</button>
-                </div>
-
-                <div class="subtabs" id="subtabs-bar"></div>
-
-                <div id="note-list"></div>
-
-                <div id="editor-area"></div>
-            </div>
-        </div>
-    </main>
-
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<div class="sidebar-title-block"><h1>Yueliang</h1><p>NOV 2026</p></div>
+<div class="header-buttons">
+<button class="icon-btn" id="readonly-btn" title="Read-only">👁</button>
+<button class="icon-btn" id="theme-btn" title="Dark mode">☾</button>
+<button class="icon-btn" id="collapse-btn" title="Collapse">«</button>
 </div>
-
+</div>
+<div class="sidebar-search"><input type="text" class="search-input" id="search-input" placeholder="Search…"></div>
+<div class="sidebar-actions">
+<button class="new-note-btn" id="new-note-btn">＋ NEW ENTRY</button>
+<button class="export-btn" id="export-btn">↓ EXPORT BACKUP</button>
+<button class="export-btn" id="import-btn">↑ IMPORT BACKUP</button>
+<button class="export-btn" id="docs-btn">📄 EXPORT TO DOCS</button>
+<div class="sync-status" id="sync-status"></div>
+</div>
+<div class="cat-list" id="cat-list"></div>
+<div class="sidebar-footer"><button class="add-cat-btn" id="add-cat-btn">＋ NEW CATEGORY</button></div>
+</aside>
+<main class="main">
+<div class="note-tabs" id="note-tabs"></div>
+<div class="main-scroll">
+<div class="main-inner">
+<div class="countdown" id="countdown">Counting down…</div>
+<div class="main-header-row">
+<div class="main-header-text"><h2 id="cat-title">General</h2><p id="cat-subtitle">0 entries</p></div>
+<button class="clear-search" id="clear-search" style="display:none;">Clear search</button>
+</div>
+<div class="subtabs" id="subtabs-bar"></div>
+<div id="note-list"></div>
+<div id="editor-area"></div>
+</div>
+</div>
+</main>
+</div>
 <div class="read-only-badge">READ-ONLY MODE</div>
-
 <div class="docs-overlay" id="docs-overlay">
-    <div class="docs-modal">
-        <div class="docs-header">
-            <h3>Export to Docs</h3>
-            <button class="docs-close" id="docs-close">×</button>
-        </div>
-        <p class="docs-hint">
-            Copy the text below, then paste it into a new Google Doc. Headings, dates and body text will come across.
-        </p>
-        <textarea class="docs-output" id="docs-output" readonly></textarea>
-        <div class="docs-actions">
-            <button class="docs-btn primary" id="docs-copy">COPY ALL</button>
-            <button class="docs-btn secondary" id="docs-download">DOWNLOAD AS .TXT</button>
-        </div>
-        <div class="docs-status" id="docs-status"></div>
-    </div>
+<div class="docs-modal">
+<div class="docs-header"><h3>Export to Docs</h3><button class="docs-close" id="docs-close">×</button></div>
+<p class="docs-hint">Copy the text below, then paste it into a new Google Doc. Headings, dates and body text will come across.</p>
+<textarea class="docs-output" id="docs-output" readonly></textarea>
+<div class="docs-actions">
+<button class="docs-btn primary" id="docs-copy">COPY ALL</button>
+<button class="docs-btn secondary" id="docs-download">DOWNLOAD AS .TXT</button>
 </div>
-
+<div class="docs-status" id="docs-status"></div>
+</div>
+</div>
 <script>
-    const STORAGE_KEY = "yueliang-journal-v1";
-    const OPEN_KEY = "yueliang-journal-open";
+const JSONBIN_BIN_ID = "6aaa39f2ffd5d160530cf9dd";
+const JSONBIN_MASTER_KEY = "$2a$10$YvRS1PtSNMPnFaFiLeT8F.jpSku64i138D8kcxx.bQQtTIJ9UtjAO";
+const JSONBIN_API = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID;
+const STORAGE_KEY = "yueliang-journal-v1";
+const OPEN_KEY = "yueliang-journal-open";
+const LOCAL_TIME_KEY = "yueliang-last-modified";
+const PENDING_KEY = "yueliang-pending-sync";
 
-    function loadData() {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            try { return JSON.parse(saved); } catch (e) {}
+let data = null;
+let activeCategory = null;
+let activeSubTab = "";
+let searchTerm = "";
+let openNoteIds = JSON.parse(localStorage.getItem(OPEN_KEY) || "[]");
+let activeNoteId = null;
+let syncTimeout = null;
+let isSyncing = false;
+
+function defaultData() {
+  return {
+    categories: [
+      { id: "general", name: "General", subtabs: [] },
+      { id: "packing", name: "Packing", subtabs: ["Clothes", "Tech", "Admin"] },
+      { id: "school", name: "School Day", subtabs: [] }
+    ],
+    notes: [
+      { id: Date.now(), categoryId: "general", subTab: "", title: "Day 1 — Arrival", body: "<p>Arrive in Shanghai. Meet the group. <b>Keep passport in sling bag.</b></p>", created: Date.now() }
+    ]
+  };
+}
+
+function loadLocal() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) { try { return JSON.parse(saved); } catch(e) {} }
+  return null;
+}
+
+function getLocalTime() {
+  return parseInt(localStorage.getItem(LOCAL_TIME_KEY) || "0", 10);
+}
+
+function setLocalTime(ts) {
+  localStorage.setItem(LOCAL_TIME_KEY, ts.toString());
+}
+
+function markPending() {
+  localStorage.setItem(PENDING_KEY, "true");
+}
+
+function clearPending() {
+  localStorage.removeItem(PENDING_KEY);
+}
+
+function hasPending() {
+  return localStorage.getItem(PENDING_KEY) === "true";
+}
+
+function saveLocal() {
+  try {
+    const now = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    setLocalTime(now);
+    markPending();
+  } catch(e) {}
+}
+
+function setSyncStatus(msg, cls) {
+  const el = document.getElementById("sync-status");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.className = "sync-status" + (cls ? " " + cls : "");
+}
+
+async function loadFromCloud() {
+  setSyncStatus("Checking cloud…", "syncing");
+  let cloudData = null;
+  let cloudTime = 0;
+
+  try {
+    const res = await fetch(JSONBIN_API + "/latest", {
+      headers: { "X-Master-Key": JSONBIN_MASTER_KEY },
+      cache: "no-store"
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const record = json.record;
+      if (record && record.categories && record.notes) {
+        cloudData = record;
+        cloudTime = record._lastModified || 0;
+      }
+    } else {
+      throw new Error("HTTP " + res.status);
+    }
+  } catch (e) {
+    const local = loadLocal();
+    if (local) {
+      data = local;
+      setSyncStatus("Offline — using saved copy", "offline");
+    } else {
+      data = defaultData();
+      saveLocal();
+      setSyncStatus("Offline — new journal", "offline");
+    }
+    return;
+  }
+
+  const local = loadLocal();
+  const localTime = getLocalTime();
+
+  if (local && localTime > cloudTime) {
+    data = local;
+    setSyncStatus("Pushing local changes…", "syncing");
+    await pushToCloud();
+    return;
+  }
+
+  if (cloudData) {
+    data = cloudData;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    setLocalTime(cloudTime || Date.now());
+    clearPending();
+    setSyncStatus("Synced", "saved");
+    setTimeout(() => setSyncStatus(""), 2000);
+    return;
+  }
+
+  if (local) {
+    data = local;
+    setSyncStatus("Using local copy", "offline");
+  } else {
+    data = defaultData();
+    saveLocal();
+    await pushToCloud();
+  }
+}
+
+async function pushToCloud() {
+  if (isSyncing) return;
+  isSyncing = true;
+  setSyncStatus("Saving…", "syncing");
+  try {
+    const now = Date.now();
+    data._lastModified = now;
+    const res = await fetch(JSONBIN_API, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_MASTER_KEY },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    setLocalTime(now);
+    clearPending();
+    setSyncStatus("Saved", "saved");
+    setTimeout(() => setSyncStatus(""), 2000);
+  } catch (e) {
+    setSyncStatus("Offline — saved on device", "offline");
+  } finally {
+    isSyncing = false;
+  }
+}
+
+function save() {
+  saveLocal();
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => {
+    if (navigator.onLine) {
+      pushToCloud();
+    } else {
+      setSyncStatus("Offline — saved on device", "offline");
+    }
+  }, 800);
+}
+
+function saveOpen() { localStorage.setItem(OPEN_KEY, JSON.stringify(openNoteIds)); }
+
+function formatDate(ts) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  return d.getDate().toString().padStart(2,"0") + " " + months[d.getMonth()] + " " + d.getFullYear();
+}
+
+function formatLongDate(ts) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+}
+
+function countWords(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+  const text = (tmp.textContent || "").trim();
+  if (!text) return 0;
+  return text.split(/\s+/).length;
+}
+
+function stripHtml(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+  return (tmp.textContent || "").trim();
+}
+
+function confirmDialog(title, message, onConfirm) {
+  const overlay = document.createElement("div");
+  overlay.className = "confirm-overlay";
+  const box = document.createElement("div");
+  box.className = "confirm-box";
+  box.innerHTML = '<h3>' + title + '</h3><p>' + message + '</p><div class="confirm-actions"><button class="btn-cancel">CANCEL</button><button class="btn-delete">DELETE</button></div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  box.querySelector(".btn-cancel").addEventListener("click", () => overlay.remove());
+  box.querySelector(".btn-delete").addEventListener("click", () => { overlay.remove(); onConfirm(); });
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+}
+
+function openNote(id) {
+  if (!openNoteIds.includes(id)) openNoteIds.push(id);
+  activeNoteId = id;
+  saveOpen();
+  renderTabs();
+  renderEditor();
+}
+
+function closeNoteTab(id, e) {
+  if (e) e.stopPropagation();
+  const idx = openNoteIds.indexOf(id);
+  if (idx === -1) return;
+  openNoteIds.splice(idx, 1);
+  if (activeNoteId === id) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
+  saveOpen();
+  renderTabs();
+  renderEditor();
+}
+
+function renderTabs() {
+  const bar = document.getElementById("note-tabs");
+  bar.innerHTML = "";
+  if (openNoteIds.length === 0) {
+    const msg = document.createElement("span");
+    msg.className = "no-tabs";
+    msg.textContent = "Open an entry to start writing.";
+    bar.appendChild(msg);
+    return;
+  }
+  openNoteIds.forEach(id => {
+    const note = data.notes.find(n => n.id === id);
+    if (!note) return;
+    const tab = document.createElement("div");
+    tab.className = "note-tab" + (id === activeNoteId ? " active" : "");
+    const name = document.createElement("span");
+    name.className = "tab-name";
+    name.textContent = note.title || "Untitled";
+    const close = document.createElement("button");
+    close.className = "tab-close";
+    close.textContent = "×";
+    close.addEventListener("click", e => closeNoteTab(id, e));
+    tab.appendChild(name);
+    tab.appendChild(close);
+    tab.addEventListener("click", () => { activeNoteId = id; renderTabs(); renderEditor(); });
+    bar.appendChild(tab);
+  });
+}
+
+let dragCatIndex = null;
+function renderCategories() {
+  const list = document.getElementById("cat-list");
+  list.innerHTML = "";
+  data.categories.forEach((cat, index) => {
+    const count = data.notes.filter(n => n.categoryId === cat.id).length;
+    const item = document.createElement("div");
+    item.className = "cat-item" + (cat.id === activeCategory ? " active" : "");
+    item.draggable = true;
+    const handle = document.createElement("span");
+    handle.className = "drag-handle";
+    handle.textContent = "⋮⋮";
+    const name = document.createElement("span");
+    name.className = "cat-name";
+    name.textContent = cat.name;
+    const countEl = document.createElement("span");
+    countEl.className = "cat-count";
+    countEl.textContent = count;
+    item.appendChild(handle); item.appendChild(name); item.appendChild(countEl);
+    if (data.categories.length > 1) {
+      const del = document.createElement("button");
+      del.className = "del-cat";
+      del.textContent = "×";
+      del.addEventListener("click", e => {
+        e.stopPropagation();
+        confirmDialog("Delete category?", cat.name + " and its entries will be removed.", () => {
+          data.categories = data.categories.filter(c => c.id !== cat.id);
+          const removedIds = data.notes.filter(n => n.categoryId === cat.id).map(n => n.id);
+          data.notes = data.notes.filter(n => n.categoryId !== cat.id);
+          openNoteIds = openNoteIds.filter(id => !removedIds.includes(id));
+          if (activeNoteId && !data.notes.some(n => n.id === activeNoteId)) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
+          if (activeCategory === cat.id) { activeCategory = data.categories[0].id; activeSubTab = ""; }
+          save(); saveOpen();
+          renderCategories(); renderSubtabs(); renderTabs(); renderNoteList(); renderEditor();
+        });
+      });
+      item.appendChild(del);
+    }
+    item.addEventListener("click", () => {
+      activeCategory = cat.id; activeSubTab = ""; searchTerm = "";
+      document.getElementById("search-input").value = "";
+      renderCategories(); renderSubtabs(); renderNoteList();
+    });
+    item.addEventListener("dragstart", () => { dragCatIndex = index; item.classList.add("dragging"); });
+    item.addEventListener("dragend", () => { item.classList.remove("dragging"); document.querySelectorAll(".cat-item").forEach(el => el.classList.remove("drag-over")); });
+    item.addEventListener("dragover", e => { e.preventDefault(); item.classList.add("drag-over"); });
+    item.addEventListener("dragleave", () => item.classList.remove("drag-over"));
+    item.addEventListener("drop", e => {
+      e.preventDefault(); item.classList.remove("drag-over");
+      if (dragCatIndex === null || dragCatIndex === index) return;
+      const moved = data.categories.splice(dragCatIndex, 1)[0];
+      data.categories.splice(index, 0, moved);
+      dragCatIndex = null;
+      save(); renderCategories();
+    });
+    list.appendChild(item);
+  });
+}
+
+let dragSubIndex = null;
+function renderSubtabs() {
+  const bar = document.getElementById("subtabs-bar");
+  bar.innerHTML = "";
+  const cat = data.categories.find(c => c.id === activeCategory);
+  if (!cat || searchTerm.trim()) { bar.style.display = searchTerm.trim() ? "none" : "flex"; return; }
+  bar.style.display = "flex";
+  const totalCount = data.notes.filter(n => n.categoryId === cat.id).length;
+  const allTab = document.createElement("button");
+  allTab.className = "subtab" + (activeSubTab === "" ? " active" : "");
+  allTab.innerHTML = 'All<span class="subtab-count">' + totalCount + '</span>';
+  allTab.addEventListener("click", () => { activeSubTab = ""; renderSubtabs(); renderNoteList(); });
+  bar.appendChild(allTab);
+  cat.subtabs.forEach((sub, subIndex) => {
+    const count = data.notes.filter(n => n.categoryId === cat.id && n.subTab === sub).length;
+    const tab = document.createElement("button");
+    tab.className = "subtab" + (activeSubTab === sub ? " active" : "");
+    tab.draggable = true;
+    tab.innerHTML = sub + '<span class="subtab-count">' + count + '</span>';
+    const del = document.createElement("button");
+    del.className = "del-subtab";
+    del.textContent = "×";
+    del.addEventListener("click", e => {
+      e.stopPropagation();
+      confirmDialog("Delete subtab?", sub + " will be removed.", () => {
+        cat.subtabs = cat.subtabs.filter(s => s !== sub);
+        data.notes.forEach(n => { if (n.categoryId === cat.id && n.subTab === sub) n.subTab = ""; });
+        if (activeSubTab === sub) activeSubTab = "";
+        save(); renderSubtabs(); renderNoteList();
+      });
+    });
+    tab.appendChild(del);
+    tab.addEventListener("click", () => { activeSubTab = sub; renderSubtabs(); renderNoteList(); });
+    tab.addEventListener("dragstart", () => { dragSubIndex = subIndex; tab.classList.add("dragging"); });
+    tab.addEventListener("dragend", () => { tab.classList.remove("dragging"); bar.querySelectorAll(".subtab").forEach(el => el.classList.remove("drag-over")); });
+    tab.addEventListener("dragover", e => { e.preventDefault(); tab.classList.add("drag-over"); });
+    tab.addEventListener("dragleave", () => tab.classList.remove("drag-over"));
+    tab.addEventListener("drop", e => {
+      e.preventDefault(); tab.classList.remove("drag-over");
+      if (dragSubIndex === null || dragSubIndex === subIndex) return;
+      const moved = cat.subtabs.splice(dragSubIndex, 1)[0];
+      cat.subtabs.splice(subIndex, 0, moved);
+      dragSubIndex = null;
+      save(); renderSubtabs();
+    });
+    bar.appendChild(tab);
+  });
+  const add = document.createElement("button");
+  add.className = "add-subtab";
+  add.textContent = "＋ Subtab";
+  add.addEventListener("click", () => {
+    const name = prompt("New subtab name:");
+    if (!name || !name.trim()) return;
+    if (!cat.subtabs.includes(name.trim())) cat.subtabs.push(name.trim());
+    activeSubTab = name.trim();
+    save(); renderSubtabs(); renderNoteList();
+  });
+  bar.appendChild(add);
+}
+
+let dragNoteIndex = null;
+function renderNoteList() {
+  const container = document.getElementById("note-list");
+  const titleEl = document.getElementById("cat-title");
+  const subEl = document.getElementById("cat-subtitle");
+  const clearBtn = document.getElementById("clear-search");
+  container.innerHTML = "";
+  const cat = data.categories.find(c => c.id === activeCategory);
+  let filtered;
+  if (searchTerm.trim()) {
+    const term = searchTerm.trim().toLowerCase();
+    filtered = data.notes.filter(n => (n.title && n.title.toLowerCase().includes(term)) || (n.body && n.body.toLowerCase().includes(term)));
+    titleEl.textContent = "Search results";
+    subEl.textContent = filtered.length + " match" + (filtered.length === 1 ? "" : "es");
+    clearBtn.style.display = "inline";
+  } else {
+    filtered = data.notes.filter(n => n.categoryId === activeCategory);
+    if (activeSubTab !== "") filtered = filtered.filter(n => n.subTab === activeSubTab);
+    titleEl.textContent = cat ? cat.name : "";
+    let sub = filtered.length + (filtered.length === 1 ? " entry" : " entries");
+    if (activeSubTab !== "") sub += " · " + activeSubTab;
+    subEl.textContent = sub;
+    clearBtn.style.display = "none";
+  }
+  if (filtered.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = searchTerm ? "No matches." : "No entries yet.";
+    container.appendChild(empty);
+    return;
+  }
+  filtered.forEach(note => {
+    const item = document.createElement("div");
+    item.className = "note-list-item";
+    item.draggable = !searchTerm.trim() && !document.body.classList.contains("read-only");
+    const top = document.createElement("div");
+    top.className = "note-list-top";
+    const handle = document.createElement("span");
+    handle.className = "drag-handle";
+    handle.textContent = "⋮⋮";
+    const titleSpan = document.createElement("span");
+    titleSpan.className = "note-list-title";
+    titleSpan.textContent = note.title || "Untitled";
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "note-list-date";
+    dateSpan.textContent = formatDate(note.created || note.id);
+    top.appendChild(handle); top.appendChild(titleSpan); top.appendChild(dateSpan);
+    const preview = document.createElement("div");
+    preview.className = "note-list-preview";
+    const tmp = document.createElement("div");
+    tmp.innerHTML = note.body || "";
+    preview.textContent = (tmp.textContent || "").slice(0, 140) || "No content yet…";
+    item.appendChild(top); item.appendChild(preview);
+    if (note.subTab) {
+      const tags = document.createElement("div");
+      tags.className = "note-list-tags";
+      const subTag = document.createElement("span");
+      subTag.className = "note-sub-tag";
+      subTag.textContent = note.subTab;
+      tags.appendChild(subTag);
+      item.appendChild(tags);
+    }
+    item.addEventListener("click", () => openNote(note.id));
+    if (!searchTerm.trim()) {
+      item.addEventListener("dragstart", () => { dragNoteIndex = data.notes.indexOf(note); item.classList.add("dragging"); });
+      item.addEventListener("dragend", () => { item.classList.remove("dragging"); container.querySelectorAll(".note-list-item").forEach(el => el.classList.remove("drag-over")); });
+      item.addEventListener("dragover", e => { e.preventDefault(); item.classList.add("drag-over"); });
+      item.addEventListener("dragleave", () => item.classList.remove("drag-over"));
+      item.addEventListener("drop", e => {
+        e.preventDefault(); item.classList.remove("drag-over");
+        const targetIndex = data.notes.indexOf(note);
+        if (dragNoteIndex === null || dragNoteIndex === targetIndex) return;
+        const moved = data.notes.splice(dragNoteIndex, 1)[0];
+        data.notes.splice(targetIndex, 0, moved);
+        dragNoteIndex = null;
+        save(); renderNoteList();
+      });
+    }
+    container.appendChild(item);
+  });
+}
+
+function renderEditor() {
+  const area = document.getElementById("editor-area");
+  area.innerHTML = "";
+  if (!activeNoteId) return;
+  const note = data.notes.find(n => n.id === activeNoteId);
+  if (!note) return;
+  const card = document.createElement("div");
+  card.className = "note";
+  const title = document.createElement("input");
+  title.className = "note-title";
+  title.type = "text";
+  title.placeholder = "Title";
+  title.value = note.title;
+  title.addEventListener("input", () => { note.title = title.value; save(); renderTabs(); renderNoteList(); });
+  const dateEl = document.createElement("div");
+  dateEl.className = "note-date";
+  dateEl.textContent = formatDate(note.created || note.id);
+  const toolbar = document.createElement("div");
+  toolbar.className = "editor-toolbar";
+  toolbar.innerHTML = '<button type="button" data-cmd="bold"><b>B</b></button><button type="button" data-cmd="italic"><i>I</i></button><button type="button" data-cmd="underline"><u>U</u></button><button type="button" data-cmd="strikeThrough"><s>S</s></button><div class="sep"></div><button type="button" data-cmd="formatBlock" data-value="h1">H1</button><button type="button" data-cmd="formatBlock" data-value="h2">H2</button><button type="button" data-cmd="formatBlock" data-value="blockquote">"</button><div class="sep"></div><button type="button" data-cmd="insertUnorderedList">•</button><button type="button" data-cmd="insertOrderedList">1.</button><div class="sep"></div><button type="button" data-cmd="removeFormat">✕</button><input type="color" value="#1e3a8a"><span class="word-count" id="word-count"></span>';
+  const body = document.createElement("div");
+  body.className = "note-body";
+  body.contentEditable = "true";
+  body.setAttribute("data-placeholder", "Write something…");
+  body.innerHTML = note.body;
+  body.addEventListener("input", () => { note.body = body.innerHTML; save(); updateWordCount(); });
+  function updateWordCount() {
+    const wc = document.getElementById("word-count");
+    if (wc) wc.textContent = countWords(note.body) + " words";
+  }
+  toolbar.querySelectorAll("button[data-cmd]").forEach(btn => {
+    btn.addEventListener("mousedown", e => {
+      e.preventDefault();
+      body.focus();
+      if (btn.dataset.cmd === "formatBlock") document.execCommand("formatBlock", false, btn.dataset.value);
+      else document.execCommand(btn.dataset.cmd, false, null);
+      note.body = body.innerHTML; save(); updateWordCount();
+    });
+  });
+  const colourInput = toolbar.querySelector('input[type="color"]');
+  colourInput.addEventListener("input", e => {
+    body.focus();
+    document.execCommand("foreColor", false, e.target.value);
+    note.body = body.innerHTML; save();
+  });
+  const footer = document.createElement("div");
+  footer.className = "note-footer";
+  const tags = document.createElement("div");
+  tags.className = "note-tags";
+  const catTag = document.createElement("span");
+  catTag.className = "note-cat-tag";
+  const catObj = data.categories.find(c => c.id === note.categoryId);
+  catTag.textContent = catObj ? catObj.name : "";
+  tags.appendChild(catTag);
+  if (note.subTab) {
+    const subTag = document.createElement("span");
+    subTag.className = "note-sub-tag";
+    subTag.textContent = note.subTab;
+    tags.appendChild(subTag);
+  }
+  const del = document.createElement("button");
+  del.className = "del-note";
+  del.textContent = "DELETE ENTRY";
+  del.addEventListener("click", () => {
+    confirmDialog("Delete entry?", "This entry will be permanently removed.", () => {
+      const id = note.id;
+      data.notes = data.notes.filter(n => n.id !== id);
+      openNoteIds = openNoteIds.filter(x => x !== id);
+      if (activeNoteId === id) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
+      save(); saveOpen();
+      renderCategories(); renderSubtabs(); renderTabs(); renderNoteList(); renderEditor();
+    });
+  });
+  footer.appendChild(tags); footer.appendChild(del);
+  card.appendChild(title); card.appendChild(dateEl); card.appendChild(toolbar); card.appendChild(body); card.appendChild(footer);
+  area.appendChild(card);
+  setTimeout(updateWordCount, 0);
+}
+
+document.getElementById("new-note-btn").addEventListener("click", () => {
+  if (searchTerm) { searchTerm = ""; document.getElementById("search-input").value = ""; }
+  const newNote = { id: Date.now(), categoryId: activeCategory, subTab: activeSubTab, title: "", body: "", created: Date.now() };
+  data.notes.unshift(newNote);
+  save();
+  renderCategories(); renderSubtabs(); renderNoteList();
+  openNote(newNote.id);
+});
+
+document.getElementById("add-cat-btn").addEventListener("click", () => {
+  const name = prompt("New category name:");
+  if (!name || !name.trim()) return;
+  const id = "cat-" + Date.now();
+  data.categories.push({ id: id, name: name.trim(), subtabs: [] });
+  activeCategory = id; activeSubTab = ""; searchTerm = "";
+  document.getElementById("search-input").value = "";
+  save();
+  renderCategories(); renderSubtabs(); renderNoteList();
+});
+
+document.getElementById("search-input").addEventListener("input", e => {
+  searchTerm = e.target.value; renderSubtabs(); renderNoteList();
+});
+
+document.getElementById("clear-search").addEventListener("click", () => {
+  searchTerm = ""; document.getElementById("search-input").value = "";
+  renderSubtabs(); renderNoteList();
+});
+
+document.getElementById("export-btn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "yueliang-backup-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("import-btn").addEventListener("click", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+  input.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const imported = JSON.parse(evt.target.result);
+        if (imported.categories && imported.notes) {
+          data = imported;
+          save();
+          activeCategory = data.categories[0].id; activeSubTab = "";
+          openNoteIds = []; activeNoteId = null; saveOpen();
+          renderCategories(); renderSubtabs(); renderTabs(); renderNoteList(); renderEditor();
         }
-        return {
-            categories: [
-                { id: "general", name: "General", subtabs: [] },
-                { id: "packing", name: "Packing", subtabs: ["Clothes", "Tech", "Admin"] },
-                { id: "school", name: "School Day", subtabs: [] }
-            ],
-            notes: [
-                {
-                    id: Date.now(),
-                    categoryId: "general",
-                    subTab: "",
-                    title: "Day 1 — Arrival",
-                    body: "<p>Arrive in Shanghai. Meet the group. <b>Keep passport in sling bag.</b></p>",
-                    created: Date.now()
-                }
-            ]
-        };
-    }
+      } catch (err) { alert("Invalid file."); }
+    };
+    reader.readAsText(file);
+  });
+  input.click();
+});
 
-    let data = loadData();
-    let activeCategory = data.categories[0].id;
-    let activeSubTab = "";
-    let searchTerm = "";
-
-    let openNoteIds = JSON.parse(localStorage.getItem(OPEN_KEY) || "[]");
-    let activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
-
-    openNoteIds = openNoteIds.filter(id => data.notes.some(n => n.id === id));
-    if (activeNoteId && !data.notes.some(n => n.id === activeNoteId)) {
-        activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
-    }
-
-    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-    function saveOpen() { localStorage.setItem(OPEN_KEY, JSON.stringify(openNoteIds)); }
-
-    function formatDate(ts) {
-        if (!ts) return "";
-        const d = new Date(ts);
-        const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-        return d.getDate().toString().padStart(2, "0") + " " + months[d.getMonth()] + " " + d.getFullYear();
-    }
-
-    function formatLongDate(ts) {
-        if (!ts) return "";
-        const d = new Date(ts);
-        const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-        return d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
-    }
-
-    function countWords(html) {
-        const tmp = document.createElement("div");
-        tmp.innerHTML = html || "";
-        const text = (tmp.textContent || "").trim();
-        if (!text) return 0;
-        return text.split(/\s+/).length;
-    }
-
-    function stripHtml(html) {
-        const tmp = document.createElement("div");
-        tmp.innerHTML = html || "";
-        return (tmp.textContent || "").trim();
-    }
-
-    const readonlyBtn = document.getElementById("readonly-btn");
-    if (localStorage.getItem("yueliang-readonly") === "true") {
-        document.body.classList.add("read-only");
-        readonlyBtn.classList.add("active");
-    }
-    readonlyBtn.addEventListener("click", () => {
-        document.body.classList.toggle("read-only");
-        const isRO = document.body.classList.contains("read-only");
-        readonlyBtn.classList.toggle("active", isRO);
-        localStorage.setItem("yueliang-readonly", isRO);
+function buildDocsText() {
+  let text = "YUELIANG JOURNAL\n";
+  text += "Exported " + formatLongDate(Date.now()) + "\n";
+  text += "=".repeat(60) + "\n\n";
+  data.categories.forEach(cat => {
+    const catNotes = data.notes.filter(n => n.categoryId === cat.id);
+    text += "\n## " + cat.name.toUpperCase() + "\n";
+    text += "—".repeat(60) + "\n";
+    if (catNotes.length === 0) { text += "(No entries)\n\n"; return; }
+    catNotes.forEach(note => {
+      const date = formatLongDate(note.created || note.id);
+      const title = (note.title || "Untitled").trim();
+      const subTag = note.subTab ? "  [" + note.subTab + "]" : "";
+      const body = stripHtml(note.body);
+      text += "\n### " + title + subTag + "\n";
+      text += date + "\n\n";
+      text += (body || "(No content)") + "\n\n";
     });
-
-    const themeBtn = document.getElementById("theme-btn");
-    if (localStorage.getItem("yueliang-dark") === "true") {
-        document.body.classList.add("dark");
-        themeBtn.textContent = "☀";
-    }
-    themeBtn.addEventListener("click", () => {
-        document.body.classList.toggle("dark");
-        const isDark = document.body.classList.contains("dark");
-        themeBtn.textContent = isDark ? "☀" : "☾";
-        localStorage.setItem("yueliang-dark", isDark);
-    });
-
-    const sidebar = document.getElementById("sidebar");
-    const collapseBtn = document.getElementById("collapse-btn");
-    if (localStorage.getItem("yueliang-sidebar-collapsed") === "true") {
-        sidebar.classList.add("collapsed");
-        collapseBtn.textContent = "»";
-    }
-    collapseBtn.addEventListener("click", () => {
-        sidebar.classList.toggle("collapsed");
-        const collapsed = sidebar.classList.contains("collapsed");
-        collapseBtn.textContent = collapsed ? "»" : "«";
-        localStorage.setItem("yueliang-sidebar-collapsed", collapsed);
-    });
-
-    function confirmDialog(title, message, onConfirm) {
-        const overlay = document.createElement("div");
-        overlay.className = "confirm-overlay";
-        const box = document.createElement("div");
-        box.className = "confirm-box";
-        box.innerHTML = `
-            <h3>${title}</h3>
-            <p>${message}</p>
-            <div class="confirm-actions">
-                <button class="btn-cancel">CANCEL</button>
-                <button class="btn-delete">DELETE</button>
-            </div>
-        `;
-        overlay.appendChild(box);
-        document.body.appendChild(overlay);
-        box.querySelector(".btn-cancel").addEventListener("click", () => overlay.remove());
-        box.querySelector(".btn-delete").addEventListener("click", () => {
-            overlay.remove();
-            onConfirm();
-        });
-        overlay.addEventListener("click", (e) => {
-            if (e.target === overlay) overlay.remove();
-        });
-    }
-
-    function openNote(id) {
-        if (!openNoteIds.includes(id)) openNoteIds.push(id);
-        activeNoteId = id;
-        saveOpen();
-        renderTabs();
-        renderEditor();
-    }
-
-    function closeNoteTab(id, e) {
-        if (e) e.stopPropagation();
-        const idx = openNoteIds.indexOf(id);
-        if (idx === -1) return;
-        openNoteIds.splice(idx, 1);
-        if (activeNoteId === id) {
-            activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
-        }
-        saveOpen();
-        renderTabs();
-        renderEditor();
-    }
-
-    function renderTabs() {
-        const bar = document.getElementById("note-tabs");
-        bar.innerHTML = "";
-        if (openNoteIds.length === 0) {
-            const msg = document.createElement("span");
-            msg.className = "no-tabs";
-            msg.textContent = "Open an entry to start writing.";
-            bar.appendChild(msg);
-            return;
-        }
-        openNoteIds.forEach(id => {
-            const note = data.notes.find(n => n.id === id);
-            if (!note) return;
-            const tab = document.createElement("div");
-            tab.className = "note-tab" + (id === activeNoteId ? " active" : "");
-            const name = document.createElement("span");
-            name.className = "tab-name";
-            name.textContent = note.title || "Untitled";
-            const close = document.createElement("button");
-            close.className = "tab-close";
-            close.textContent = "×";
-            close.addEventListener("click", (e) => closeNoteTab(id, e));
-            tab.appendChild(name);
-            tab.appendChild(close);
-            tab.addEventListener("click", () => {
-                activeNoteId = id;
-                renderTabs();
-                renderEditor();
-            });
-            bar.appendChild(tab);
-        });
-    }
-
-    let dragCatIndex = null;
-
-    function renderCategories() {
-        const list = document.getElementById("cat-list");
-        list.innerHTML = "";
-        data.categories.forEach((cat, index) => {
-            const count = data.notes.filter(n => n.categoryId === cat.id).length;
-            const item = document.createElement("div");
-            item.className = "cat-item" + (cat.id === activeCategory ? " active" : "");
-            item.draggable = true;
-
-            const handle = document.createElement("span");
-            handle.className = "drag-handle";
-            handle.textContent = "⋮⋮";
-
-            const name = document.createElement("span");
-            name.className = "cat-name";
-            name.textContent = cat.name;
-
-            const countEl = document.createElement("span");
-            countEl.className = "cat-count";
-            countEl.textContent = count;
-
-            item.appendChild(handle);
-            item.appendChild(name);
-            item.appendChild(countEl);
-
-            if (data.categories.length > 1) {
-                const del = document.createElement("button");
-                del.className = "del-cat";
-                del.textContent = "×";
-                del.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    confirmDialog("Delete category?", `"${cat.name}" and its entries will be removed.`, () => {
-                        data.categories = data.categories.filter(c => c.id !== cat.id);
-                        const removedIds = data.notes.filter(n => n.categoryId === cat.id).map(n => n.id);
-                        data.notes = data.notes.filter(n => n.categoryId !== cat.id);
-                        openNoteIds = openNoteIds.filter(id => !removedIds.includes(id));
-                        if (activeNoteId && !data.notes.some(n => n.id === activeNoteId)) {
-                            activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
-                        }
-                        if (activeCategory === cat.id) {
-                            activeCategory = data.categories[0].id;
-                            activeSubTab = "";
-                        }
-                        save();
-                        saveOpen();
-                        renderCategories();
-                        renderSubtabs();
-                        renderTabs();
-                        renderNoteList();
-                        renderEditor();
-                    });
-                });
-                item.appendChild(del);
-            }
-
-            item.addEventListener("click", () => {
-                activeCategory = cat.id;
-                activeSubTab = "";
-                searchTerm = "";
-                document.getElementById("search-input").value = "";
-                renderCategories();
-                renderSubtabs();
-                renderNoteList();
-            });
-
-            item.addEventListener("dragstart", () => {
-                dragCatIndex = index;
-                item.classList.add("dragging");
-            });
-            item.addEventListener("dragend", () => {
-                item.classList.remove("dragging");
-                document.querySelectorAll(".cat-item").forEach(el => el.classList.remove("drag-over"));
-            });
-            item.addEventListener("dragover", (e) => { e.preventDefault(); item.classList.add("drag-over"); });
-            item.addEventListener("dragleave", () => item.classList.remove("drag-over"));
-            item.addEventListener("drop", (e) => {
-                e.preventDefault();
-                item.classList.remove("drag-over");
-                if (dragCatIndex === null || dragCatIndex === index) return;
-                const moved = data.categories.splice(dragCatIndex, 1)[0];
-                data.categories.splice(index, 0, moved);
-                dragCatIndex = null;
-                save();
-                renderCategories();
-            });
-
-            list.appendChild(item);
-        });
-    }
-
-    let dragSubIndex = null;
-
-    function renderSubtabs() {
-        const bar = document.getElementById("subtabs-bar");
-        bar.innerHTML = "";
-        const cat = data.categories.find(c => c.id === activeCategory);
-        if (!cat || searchTerm.trim()) {
-            bar.style.display = searchTerm.trim() ? "none" : "flex";
-            return;
-        }
-        bar.style.display = "flex";
-
-        const totalCount = data.notes.filter(n => n.categoryId === cat.id).length;
-        const allTab = document.createElement("button");
-        allTab.className = "subtab" + (activeSubTab === "" ? " active" : "");
-        allTab.innerHTML = `All<span class="subtab-count">${totalCount}</span>`;
-        allTab.addEventListener("click", () => {
-            activeSubTab = "";
-            renderSubtabs();
-            renderNoteList();
-        });
-        bar.appendChild(allTab);
-
-        cat.subtabs.forEach((sub, subIndex) => {
-            const count = data.notes.filter(n => n.categoryId === cat.id && n.subTab === sub).length;
-            const tab = document.createElement("button");
-            tab.className = "subtab" + (activeSubTab === sub ? " active" : "");
-            tab.draggable = true;
-            tab.innerHTML = `${sub}<span class="subtab-count">${count}</span>`;
-
-            const del = document.createElement("button");
-            del.className = "del-subtab";
-            del.textContent = "×";
-            del.addEventListener("click", (e) => {
-                e.stopPropagation();
-                confirmDialog("Delete subtab?", `"${sub}" will be removed.`, () => {
-                    cat.subtabs = cat.subtabs.filter(s => s !== sub);
-                    data.notes.forEach(n => {
-                        if (n.categoryId === cat.id && n.subTab === sub) n.subTab = "";
-                    });
-                    if (activeSubTab === sub) activeSubTab = "";
-                    save();
-                    renderSubtabs();
-                    renderNoteList();
-                });
-            });
-            tab.appendChild(del);
-
-            tab.addEventListener("click", () => {
-                activeSubTab = sub;
-                renderSubtabs();
-                renderNoteList();
-            });
-
-            tab.addEventListener("dragstart", () => {
-                dragSubIndex = subIndex;
-                tab.classList.add("dragging");
-            });
-            tab.addEventListener("dragend", () => {
-                tab.classList.remove("dragging");
-                bar.querySelectorAll(".subtab").forEach(el => el.classList.remove("drag-over"));
-            });
-            tab.addEventListener("dragover", (e) => { e.preventDefault(); tab.classList.add("drag-over"); });
-            tab.addEventListener("dragleave", () => tab.classList.remove("drag-over"));
-            tab.addEventListener("drop", (e) => {
-                e.preventDefault();
-                tab.classList.remove("drag-over");
-                if (dragSubIndex === null || dragSubIndex === subIndex) return;
-                const moved = cat.subtabs.splice(dragSubIndex, 1)[0];
-                cat.subtabs.splice(subIndex, 0, moved);
-                dragSubIndex = null;
-                save();
-                renderSubtabs();
-            });
-
-            bar.appendChild(tab);
-        });
-
-        const add = document.createElement("button");
-        add.className = "add-subtab";
-        add.textContent = "＋ Subtab";
-        add.addEventListener("click", () => {
-            const name = prompt("New subtab name:");
-            if (!name || !name.trim()) return;
-            if (!cat.subtabs.includes(name.trim())) cat.subtabs.push(name.trim());
-            activeSubTab = name.trim();
-            save();
-            renderSubtabs();
-            renderNoteList();
-        });
-        bar.appendChild(add);
-    }
-
-    let dragNoteIndex = null;
-
-    function renderNoteList() {
-        const container = document.getElementById("note-list");
-        const titleEl = document.getElementById("cat-title");
-        const subEl = document.getElementById("cat-subtitle");
-        const clearBtn = document.getElementById("clear-search");
-        container.innerHTML = "";
-
-        const cat = data.categories.find(c => c.id === activeCategory);
-        let filtered;
-
-        if (searchTerm.trim()) {
-            const term = searchTerm.trim().toLowerCase();
-            filtered = data.notes.filter(n =>
-                (n.title && n.title.toLowerCase().includes(term)) ||
-                (n.body && n.body.toLowerCase().includes(term))
-            );
-            titleEl.textContent = "Search results";
-            subEl.textContent = filtered.length + " match" + (filtered.length === 1 ? "" : "es");
-            clearBtn.style.display = "inline";
-        } else {
-            filtered = data.notes.filter(n => n.categoryId === activeCategory);
-            if (activeSubTab !== "") filtered = filtered.filter(n => n.subTab === activeSubTab);
-            titleEl.textContent = cat ? cat.name : "";
-            let sub = filtered.length + (filtered.length === 1 ? " entry" : " entries");
-            if (activeSubTab !== "") sub += " · " + activeSubTab;
-            subEl.textContent = sub;
-            clearBtn.style.display = "none";
-        }
-
-        if (filtered.length === 0) {
-            const empty = document.createElement("div");
-            empty.className = "empty";
-            empty.textContent = searchTerm ? "No matches." : "No entries yet.";
-            container.appendChild(empty);
-            return;
-        }
-
-        filtered.forEach(note => {
-            const item = document.createElement("div");
-            item.className = "note-list-item";
-            item.draggable = !searchTerm.trim() && !document.body.classList.contains("read-only");
-
-            const top = document.createElement("div");
-            top.className = "note-list-top";
-
-            const handle = document.createElement("span");
-            handle.className = "drag-handle";
-            handle.textContent = "⋮⋮";
-
-            const titleSpan = document.createElement("span");
-            titleSpan.className = "note-list-title";
-            titleSpan.textContent = note.title || "Untitled";
-
-            const dateSpan = document.createElement("span");
-            dateSpan.className = "note-list-date";
-            dateSpan.textContent = formatDate(note.created || note.id);
-
-            top.appendChild(handle);
-            top.appendChild(titleSpan);
-            top.appendChild(dateSpan);
-
-            const preview = document.createElement("div");
-            preview.className = "note-list-preview";
-            const tmp = document.createElement("div");
-            tmp.innerHTML = note.body || "";
-            preview.textContent = (tmp.textContent || "").slice(0, 140) || "No content yet…";
-
-            item.appendChild(top);
-            item.appendChild(preview);
-
-            if (note.subTab) {
-                const tags = document.createElement("div");
-                tags.className = "note-list-tags";
-                const subTag = document.createElement("span");
-                subTag.className = "note-sub-tag";
-                subTag.textContent = note.subTab;
-                tags.appendChild(subTag);
-                item.appendChild(tags);
-            }
-
-            item.addEventListener("click", () => openNote(note.id));
-
-            if (!searchTerm.trim()) {
-                item.addEventListener("dragstart", () => {
-                    dragNoteIndex = data.notes.indexOf(note);
-                    item.classList.add("dragging");
-                });
-                item.addEventListener("dragend", () => {
-                    item.classList.remove("dragging");
-                    container.querySelectorAll(".note-list-item").forEach(el => el.classList.remove("drag-over"));
-                });
-                item.addEventListener("dragover", (e) => { e.preventDefault(); item.classList.add("drag-over"); });
-                item.addEventListener("dragleave", () => item.classList.remove("drag-over"));
-                item.addEventListener("drop", (e) => {
-                    e.preventDefault();
-                    item.classList.remove("drag-over");
-                    const targetIndex = data.notes.indexOf(note);
-                    if (dragNoteIndex === null || dragNoteIndex === targetIndex) return;
-                    const moved = data.notes.splice(dragNoteIndex, 1)[0];
-                    data.notes.splice(targetIndex, 0, moved);
-                    dragNoteIndex = null;
-                    save();
-                    renderNoteList();
-                });
-            }
-
-            container.appendChild(item);
-        });
-    }
-
-    function renderEditor() {
-        const area = document.getElementById("editor-area");
-        area.innerHTML = "";
-
-        if (!activeNoteId) return;
-        const note = data.notes.find(n => n.id === activeNoteId);
-        if (!note) return;
-
-        const card = document.createElement("div");
-        card.className = "note";
-
-        const title = document.createElement("input");
-        title.className = "note-title";
-        title.type = "text";
-        title.placeholder = "Title";
-        title.value = note.title;
-        title.addEventListener("input", () => {
-            note.title = title.value;
-            save();
-            renderTabs();
-            renderNoteList();
-        });
-
-        const dateEl = document.createElement("div");
-        dateEl.className = "note-date";
-        dateEl.textContent = formatDate(note.created || note.id);
-
-        const toolbar = document.createElement("div");
-        toolbar.className = "editor-toolbar";
-        toolbar.innerHTML = `
-            <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
-            <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
-            <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
-            <button type="button" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
-            <div class="sep"></div>
-            <button type="button" data-cmd="formatBlock" data-value="h1" title="Heading 1">H1</button>
-            <button type="button" data-cmd="formatBlock" data-value="h2" title="Heading 2">H2</button>
-            <button type="button" data-cmd="formatBlock" data-value="blockquote" title="Quote">"</button>
-            <div class="sep"></div>
-            <button type="button" data-cmd="insertUnorderedList" title="Bullet list">•</button>
-            <button type="button" data-cmd="insertOrderedList" title="Numbered list">1.</button>
-            <div class="sep"></div>
-            <button type="button" data-cmd="removeFormat" title="Clear formatting">✕</button>
-            <input type="color" value="#1e3a8a" title="Text colour">
-            <span class="word-count" id="word-count"></span>
-        `;
-
-        const body = document.createElement("div");
-        body.className = "note-body";
-        body.contentEditable = "true";
-        body.setAttribute("data-placeholder", "Write something…");
-        body.innerHTML = note.body;
-        body.addEventListener("input", () => {
-            note.body = body.innerHTML;
-            save();
-            updateWordCount();
-        });
-
-        function updateWordCount() {
-            const wc = document.getElementById("word-count");
-            if (wc) wc.textContent = countWords(note.body) + " words";
-        }
-
-        toolbar.querySelectorAll("button[data-cmd]").forEach(btn => {
-            btn.addEventListener("mousedown", e => {
-                e.preventDefault();
-                body.focus();
-                if (btn.dataset.cmd === "formatBlock") {
-                    document.execCommand("formatBlock", false, btn.dataset.value);
-                } else {
-                    document.execCommand(btn.dataset.cmd, false, null);
-                }
-                note.body = body.innerHTML;
-                save();
-                updateWordCount();
-            });
-        });
-
-        const colourInput = toolbar.querySelector('input[type="color"]');
-        colourInput.addEventListener("input", e => {
-            body.focus();
-            document.execCommand("foreColor", false, e.target.value);
-            note.body = body.innerHTML;
-            save();
-        });
-
-        const footer = document.createElement("div");
-        footer.className = "note-footer";
-
-        const tags = document.createElement("div");
-        tags.className = "note-tags";
-
-        const catTag = document.createElement("span");
-        catTag.className = "note-cat-tag";
-        const catObj = data.categories.find(c => c.id === note.categoryId);
-        catTag.textContent = catObj ? catObj.name : "";
-        tags.appendChild(catTag);
-
-        if (note.subTab) {
-            const subTag = document.createElement("span");
-            subTag.className = "note-sub-tag";
-            subTag.textContent = note.subTab;
-            tags.appendChild(subTag);
-        }
-
-        const del = document.createElement("button");
-        del.className = "del-note";
-        del.textContent = "DELETE ENTRY";
-        del.addEventListener("click", () => {
-            confirmDialog("Delete entry?", "This entry will be permanently removed.", () => {
-                const id = note.id;
-                data.notes = data.notes.filter(n => n.id !== id);
-                openNoteIds = openNoteIds.filter(x => x !== id);
-                if (activeNoteId === id) {
-                    activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
-                }
-                save();
-                saveOpen();
-                renderCategories();
-                renderSubtabs();
-                renderTabs();
-                renderNoteList();
-                renderEditor();
-            });
-        });
-
-        footer.appendChild(tags);
-        footer.appendChild(del);
-
-        card.appendChild(title);
-        card.appendChild(dateEl);
-        card.appendChild(toolbar);
-        card.appendChild(body);
-        card.appendChild(footer);
-
-        area.appendChild(card);
-
-        setTimeout(updateWordCount, 0);
-    }
-
-    document.getElementById("new-note-btn").addEventListener("click", () => {
-        if (searchTerm) {
-            searchTerm = "";
-            document.getElementById("search-input").value = "";
-        }
-        const newNote = {
-            id: Date.now(),
-            categoryId: activeCategory,
-            subTab: activeSubTab,
-            title: "",
-            body: "",
-            created: Date.now()
-        };
-        data.notes.unshift(newNote);
-        save();
-        renderCategories();
-        renderSubtabs();
-        renderNoteList();
-        openNote(newNote.id);
-    });
-
-    document.getElementById("add-cat-btn").addEventListener("click", () => {
-        const name = prompt("New category name:");
-        if (!name || !name.trim()) return;
-        const id = "cat-" + Date.now();
-        data.categories.push({ id: id, name: name.trim(), subtabs: [] });
-        activeCategory = id;
-        activeSubTab = "";
-        searchTerm = "";
-        document.getElementById("search-input").value = "";
-        save();
-        renderCategories();
-        renderSubtabs();
-        renderNoteList();
-    });
-
-    document.getElementById("search-input").addEventListener("input", (e) => {
-        searchTerm = e.target.value;
-        renderSubtabs();
-        renderNoteList();
-    });
-
-    document.getElementById("clear-search").addEventListener("click", () => {
-        searchTerm = "";
-        document.getElementById("search-input").value = "";
-        renderSubtabs();
-        renderNoteList();
-    });
-
-    document.getElementById("export-btn").addEventListener("click", () => {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "yueliang-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-
-    document.getElementById("import-btn").addEventListener("click", () => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".json";
-        input.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                try {
-                    const imported = JSON.parse(evt.target.result);
-                    if (imported.categories && imported.notes) {
-                        data = imported;
-                        save();
-                        activeCategory = data.categories[0].id;
-                        activeSubTab = "";
-                        openNoteIds = [];
-                        activeNoteId = null;
-                        saveOpen();
-                        renderCategories();
-                        renderSubtabs();
-                        renderTabs();
-                        renderNoteList();
-                        renderEditor();
-                    }
-                } catch (err) {
-                    alert("Invalid file.");
-                }
-            };
-            reader.readAsText(file);
-        });
-        input.click();
-    });
-
-    // ============================================================
-    // EXPORT TO DOCS
-    // ============================================================
-    function buildDocsText() {
-        let text = "";
-        text += "YUELIANG JOURNAL\n";
-        text += "Exported " + formatLongDate(Date.now()) + "\n";
-        text += "=".repeat(60) + "\n\n";
-
-        data.categories.forEach(cat => {
-            const catNotes = data.notes.filter(n => n.categoryId === cat.id);
-
-            text += "\n## " + cat.name.toUpperCase() + "\n";
-            text += "—".repeat(60) + "\n";
-
-            if (catNotes.length === 0) {
-                text += "(No entries)\n\n";
-                return;
-            }
-
-            catNotes.forEach(note => {
-                const date = formatLongDate(note.created || note.id);
-                const title = (note.title || "Untitled").trim();
-                const subTag = note.subTab ? "  [" + note.subTab + "]" : "";
-                const body = stripHtml(note.body);
-
-                text += "\n### " + title + subTag + "\n";
-                text += date + "\n\n";
-                text += (body || "(No content)") + "\n\n";
-            });
-        });
-
-        return text;
-    }
-
-    const docsOverlay = document.getElementById("docs-overlay");
-    const docsOutput = document.getElementById("docs-output");
-    const docsStatus = document.getElementById("docs-status");
-
-    document.getElementById("docs-btn").addEventListener("click", () => {
-        docsOutput.value = buildDocsText();
-        docsStatus.textContent = "";
-        docsStatus.className = "docs-status";
-        docsOverlay.classList.add("open");
-    });
-
-    document.getElementById("docs-close").addEventListener("click", () => {
-        docsOverlay.classList.remove("open");
-    });
-
-    docsOverlay.addEventListener("click", (e) => {
-        if (e.target === docsOverlay) docsOverlay.classList.remove("open");
-    });
-
-    document.getElementById("docs-copy").addEventListener("click", async () => {
-        try {
-            await navigator.clipboard.writeText(docsOutput.value);
-            docsStatus.textContent = "Copied. Now paste into Google Docs.";
-            docsStatus.className = "docs-status success";
-        } catch (err) {
-            docsOutput.select();
-            document.execCommand("copy");
-            docsStatus.textContent = "Copied (fallback method).";
-            docsStatus.className = "docs-status success";
-        }
-    });
-
-    document.getElementById("docs-download").addEventListener("click", () => {
-        const blob = new Blob([docsOutput.value], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "yueliang-journal-" + new Date().toISOString().slice(0,10) + ".txt";
-        a.click();
-        URL.revokeObjectURL(url);
-        docsStatus.textContent = "Downloaded as .txt";
-        docsStatus.className = "docs-status success";
-    });
-
-    // Countdown
-    const target = new Date("2026-11-01T00:00:00+08:00").getTime();
-    const el = document.getElementById("countdown");
-
-    function updateCountdown() {
-        const diff = target - Date.now();
-        if (diff <= 0) {
-            el.textContent = "IT'S TIME — 走吧！";
-            return;
-        }
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / (1000 * 60)) % 60);
-        el.textContent = `${days}D · ${hours}H · ${mins}M TO SHANGHAI`;
-    }
-
-    updateCountdown();
-    setInterval(updateCountdown, 60000);
-
-    renderCategories();
-    renderSubtabs();
-    renderTabs();
-    renderNoteList();
-    renderEditor();
-
-    // PWA service worker
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js").catch(() => {});
-    }
+  });
+  return text;
+}
+
+const docsOverlay = document.getElementById("docs-overlay");
+const docsOutput = document.getElementById("docs-output");
+const docsStatus = document.getElementById("docs-status");
+
+document.getElementById("docs-btn").addEventListener("click", () => {
+  docsOutput.value = buildDocsText();
+  docsStatus.textContent = ""; docsStatus.className = "docs-status";
+  docsOverlay.classList.add("open");
+});
+
+document.getElementById("docs-close").addEventListener("click", () => docsOverlay.classList.remove("open"));
+docsOverlay.addEventListener("click", e => { if (e.target === docsOverlay) docsOverlay.classList.remove("open"); });
+
+document.getElementById("docs-copy").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(docsOutput.value);
+    docsStatus.textContent = "Copied. Now paste into Google Docs.";
+    docsStatus.className = "docs-status success";
+  } catch (err) {
+    docsOutput.select();
+    document.execCommand("copy");
+    docsStatus.textContent = "Copied (fallback method).";
+    docsStatus.className = "docs-status success";
+  }
+});
+
+document.getElementById("docs-download").addEventListener("click", () => {
+  const blob = new Blob([docsOutput.value], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "yueliang-journal-" + new Date().toISOString().slice(0,10) + ".txt";
+  a.click();
+  URL.revokeObjectURL(url);
+  docsStatus.textContent = "Downloaded as .txt";
+  docsStatus.className = "docs-status success";
+});
+
+const readonlyBtn = document.getElementById("readonly-btn");
+if (localStorage.getItem("yueliang-readonly") === "true") { document.body.classList.add("read-only"); readonlyBtn.classList.add("active"); }
+readonlyBtn.addEventListener("click", () => {
+  document.body.classList.toggle("read-only");
+  const isRO = document.body.classList.contains("read-only");
+  readonlyBtn.classList.toggle("active", isRO);
+  localStorage.setItem("yueliang-readonly", isRO);
+});
+
+const themeBtn = document.getElementById("theme-btn");
+if (localStorage.getItem("yueliang-dark") === "true") { document.body.classList.add("dark"); themeBtn.textContent = "☀"; }
+themeBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  const isDark = document.body.classList.contains("dark");
+  themeBtn.textContent = isDark ? "☀" : "☾";
+  localStorage.setItem("yueliang-dark", isDark);
+});
+
+const sidebar = document.getElementById("sidebar");
+const collapseBtn = document.getElementById("collapse-btn");
+if (localStorage.getItem("yueliang-sidebar-collapsed") === "true") { sidebar.classList.add("collapsed"); collapseBtn.textContent = "»"; }
+collapseBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+  const collapsed = sidebar.classList.contains("collapsed");
+  collapseBtn.textContent = collapsed ? "»" : "«";
+  localStorage.setItem("yueliang-sidebar-collapsed", collapsed);
+});
+
+window.addEventListener("online", () => {
+  setSyncStatus("Back online — syncing…", "syncing");
+  if (data) pushToCloud();
+});
+
+window.addEventListener("offline", () => {
+  setSyncStatus("Offline — saved on device", "offline");
+});
+
+const target = new Date("2026-11-01T00:00:00+08:00").getTime();
+const el = document.getElementById("countdown");
+function updateCountdown() {
+  const diff = target - Date.now();
+  if (diff <= 0) { el.textContent = "IT'S TIME — 走吧！"; return; }
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / (1000 * 60)) % 60);
+  el.textContent = days + "D · " + hours + "H · " + mins + "M TO SHANGHAI";
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+
+async function init() {
+  await loadFromCloud();
+  if (!data.categories.length) { activeCategory = null; } else { activeCategory = data.categories[0].id; }
+  openNoteIds = openNoteIds.filter(id => data.notes.some(n => n.id === id));
+  if (activeNoteId && !data.notes.some(n => n.id === activeNoteId)) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
+  if (!activeNoteId && openNoteIds.length) activeNoteId = openNoteIds[openNoteIds.length - 1];
+  renderCategories(); renderSubtabs(); renderTabs(); renderNoteList(); renderEditor();
+}
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+init();
 </script>
-
 </body>
 </html>
