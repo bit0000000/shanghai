@@ -1,14 +1,14 @@
 {
-  "name": "Yueliang — Shanghai Journal",
-  "short_name": "Yueliang",
-  "description": "A quiet journal for the Shanghai trip, November 2026.",
+  "name": "月亮 · 上海日记",
+  "short_name": "月亮",
+  "description": "上海之旅的日记 · 2026年11月",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f5f7fb",
   "theme_color": "#1e3a8a",
-  "lang": "en",
+  "lang": "zh-CN",
   "icons": [
     {
       "src": "icon.png",
