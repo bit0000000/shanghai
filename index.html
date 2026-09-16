@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yueliang</title>
 
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3a8a">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +13,6 @@
     <link rel="icon" href="icon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -35,7 +33,6 @@
             --tabs-bg: #e2e8f4;
             --hover: rgba(30, 58, 138, 0.06);
             --danger: #b91c1c;
-            --highlight: #fff3b0;
         }
 
         body.dark {
@@ -51,7 +48,6 @@
             --tabs-bg: #0f1a36;
             --hover: rgba(120, 160, 220, 0.08);
             --danger: #ef4444;
-            --highlight: #4a3d1a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -691,6 +687,119 @@
         .btn-delete { background: var(--danger); color: #fff; }
         .btn-delete:hover { opacity: 0.9; }
 
+        /* EXPORT TO DOCS modal */
+        .docs-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 18, 38, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            animation: fadeIn 0.15s ease;
+        }
+        .docs-overlay.open { display: flex; }
+
+        .docs-modal {
+            background: var(--card);
+            border-radius: 16px;
+            max-width: 720px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+        }
+
+        .docs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .docs-header h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -0.01em;
+        }
+        .docs-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--muted);
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        .docs-close:hover { background: var(--hover); color: var(--text); }
+
+        .docs-hint {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 14px;
+            line-height: 1.55;
+        }
+
+        .docs-output {
+            flex: 1;
+            min-height: 300px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
+            resize: none;
+            outline: none;
+        }
+        .docs-output:focus { border-color: var(--accent); }
+
+        .docs-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .docs-btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: 0.12s;
+            border: none;
+        }
+        .docs-btn.primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .docs-btn.primary:hover { background: var(--accent-hover); }
+        .docs-btn.secondary {
+            background: var(--card);
+            border: 1px solid var(--line);
+            color: var(--text);
+        }
+        .docs-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+        .docs-status {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-top: 10px;
+            min-height: 1.1em;
+            font-family: 'Roboto Mono', monospace;
+        }
+        .docs-status.success { color: #1a7f37; }
+        .docs-status.error { color: var(--danger); }
+
         @media (max-width: 700px) {
             .layout { flex-direction: column; height: auto; }
             .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--line); }
@@ -734,6 +843,7 @@
             <button class="new-note-btn" id="new-note-btn">＋ NEW ENTRY</button>
             <button class="export-btn" id="export-btn">↓ EXPORT BACKUP</button>
             <button class="export-btn" id="import-btn">↑ IMPORT BACKUP</button>
+            <button class="export-btn" id="docs-btn">📄 EXPORT TO DOCS</button>
         </div>
 
         <div class="cat-list" id="cat-list"></div>
@@ -770,6 +880,24 @@
 </div>
 
 <div class="read-only-badge">READ-ONLY MODE</div>
+
+<div class="docs-overlay" id="docs-overlay">
+    <div class="docs-modal">
+        <div class="docs-header">
+            <h3>Export to Docs</h3>
+            <button class="docs-close" id="docs-close">×</button>
+        </div>
+        <p class="docs-hint">
+            Copy the text below, then paste it into a new Google Doc. Headings, dates and body text will come across.
+        </p>
+        <textarea class="docs-output" id="docs-output" readonly></textarea>
+        <div class="docs-actions">
+            <button class="docs-btn primary" id="docs-copy">COPY ALL</button>
+            <button class="docs-btn secondary" id="docs-download">DOWNLOAD AS .TXT</button>
+        </div>
+        <div class="docs-status" id="docs-status"></div>
+    </div>
+</div>
 
 <script>
     const STORAGE_KEY = "yueliang-journal-v1";
@@ -822,12 +950,25 @@
         return d.getDate().toString().padStart(2, "0") + " " + months[d.getMonth()] + " " + d.getFullYear();
     }
 
+    function formatLongDate(ts) {
+        if (!ts) return "";
+        const d = new Date(ts);
+        const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        return d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+    }
+
     function countWords(html) {
         const tmp = document.createElement("div");
         tmp.innerHTML = html || "";
         const text = (tmp.textContent || "").trim();
         if (!text) return 0;
         return text.split(/\s+/).length;
+    }
+
+    function stripHtml(html) {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html || "";
+        return (tmp.textContent || "").trim();
     }
 
     const readonlyBtn = document.getElementById("readonly-btn");
@@ -1476,6 +1617,86 @@
         input.click();
     });
 
+    // ============================================================
+    // EXPORT TO DOCS
+    // ============================================================
+    function buildDocsText() {
+        let text = "";
+        text += "YUELIANG JOURNAL\n";
+        text += "Exported " + formatLongDate(Date.now()) + "\n";
+        text += "=".repeat(60) + "\n\n";
+
+        data.categories.forEach(cat => {
+            const catNotes = data.notes.filter(n => n.categoryId === cat.id);
+
+            text += "\n## " + cat.name.toUpperCase() + "\n";
+            text += "—".repeat(60) + "\n";
+
+            if (catNotes.length === 0) {
+                text += "(No entries)\n\n";
+                return;
+            }
+
+            catNotes.forEach(note => {
+                const date = formatLongDate(note.created || note.id);
+                const title = (note.title || "Untitled").trim();
+                const subTag = note.subTab ? "  [" + note.subTab + "]" : "";
+                const body = stripHtml(note.body);
+
+                text += "\n### " + title + subTag + "\n";
+                text += date + "\n\n";
+                text += (body || "(No content)") + "\n\n";
+            });
+        });
+
+        return text;
+    }
+
+    const docsOverlay = document.getElementById("docs-overlay");
+    const docsOutput = document.getElementById("docs-output");
+    const docsStatus = document.getElementById("docs-status");
+
+    document.getElementById("docs-btn").addEventListener("click", () => {
+        docsOutput.value = buildDocsText();
+        docsStatus.textContent = "";
+        docsStatus.className = "docs-status";
+        docsOverlay.classList.add("open");
+    });
+
+    document.getElementById("docs-close").addEventListener("click", () => {
+        docsOverlay.classList.remove("open");
+    });
+
+    docsOverlay.addEventListener("click", (e) => {
+        if (e.target === docsOverlay) docsOverlay.classList.remove("open");
+    });
+
+    document.getElementById("docs-copy").addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(docsOutput.value);
+            docsStatus.textContent = "Copied. Now paste into Google Docs.";
+            docsStatus.className = "docs-status success";
+        } catch (err) {
+            docsOutput.select();
+            document.execCommand("copy");
+            docsStatus.textContent = "Copied (fallback method).";
+            docsStatus.className = "docs-status success";
+        }
+    });
+
+    document.getElementById("docs-download").addEventListener("click", () => {
+        const blob = new Blob([docsOutput.value], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "yueliang-journal-" + new Date().toISOString().slice(0,10) + ".txt";
+        a.click();
+        URL.revokeObjectURL(url);
+        docsStatus.textContent = "Downloaded as .txt";
+        docsStatus.className = "docs-status success";
+    });
+
+    // Countdown
     const target = new Date("2026-11-01T00:00:00+08:00").getTime();
     const el = document.getElementById("countdown");
 
@@ -1500,7 +1721,7 @@
     renderNoteList();
     renderEditor();
 
-    // PWA service worker registration
+    // PWA service worker
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js").catch(() => {});
     }
