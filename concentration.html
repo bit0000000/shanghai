@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concentration · 专注力</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f7fb;--card:#ffffff;--text:#0f1e3d;--muted:#6a7a99;--accent:#1e3a8a;--accent-hover:#172a63;--accent-soft:#dde6f7;--line:#d4dced;--radius:16px;--danger:#b91c1c;--success:#1a7f37}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px;display:flex;justify-content:center;align-items:flex-start;-webkit-font-smoothing:antialiased}
+.wrap{width:100%;max-width:640px}
+h1{font-size:1.6rem;font-weight:700;color:var(--accent);letter-spacing:-.02em;margin-bottom:4px}
+.sub{font-size:.85rem;color:var(--muted);margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-weight:600;transition:.12s}
+.btn{padding:10px 16px;background:var(--accent);color:#fff;font-size:.85rem;letter-spacing:.03em}
+.btn:hover{background:var(--accent-hover)}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--text)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn.chip{background:var(--accent-soft);color:var(--accent);padding:8px 14px;font-size:.8rem;border-radius:24px}
+.btn.chip:hover{background:var(--accent);color:#fff}
+.topics{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.label{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.arena{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;background:var(--accent-soft);border-radius:12px;margin-bottom:16px}
+.arena .who{font-size:.85rem;font-weight:600;color:var(--accent)}
+.arena .timer{font-family:'Roboto Mono',monospace;font-size:1.4rem;font-weight:600;color:var(--accent);min-width:60px;text-align:right}
+.arena .timer.warn{color:var(--danger)}
+.log{max-height:340px;overflow-y:auto;padding:6px 2px;display:flex;flex-direction:column;gap:6px}
+.log-item{font-size:.88rem;padding:8px 12px;border-radius:10px;line-height:1.5;word-break:break-word}
+.log-item.ai{background:var(--accent-soft);color:var(--accent);align-self:flex-start;max-width:85%}
+.log-item.user{background:var(--bg);border:1px solid var(--line);align-self:flex-end;max-width:85%}
+.log-item.sys{background:none;color:var(--muted);font-style:italic;font-size:.78rem;align-self:center;text-align:center}
+.log-item.bad{background:#fbe9e9;color:var(--danger)}
+.log-item.good{background:#e6f4ea;color:var(--success)}
+.inputbar{display:flex;gap:8px;margin-top:14px}
+.inputbar input{flex:1;padding:12px 16px;border:1px solid var(--line);border-radius:24px;font-family:inherit;font-size:.9rem;background:var(--bg);color:var(--text)}
+.inputbar input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.inputbar input:disabled{opacity:.5}
+.used{font-size:.78rem;color:var(--muted);margin-top:12px;line-height:1.7}
+.used b{color:var(--text);font-weight:600}
+.gameover{text-align:center;padding:20px 0}
+.gameover h2{font-size:1.3rem;color:var(--accent);margin-bottom:8px}
+.gameover p{font-size:.9rem;color:var(--muted);margin-bottom:16px}
+@media (max-width:520px){h1{font-size:1.3rem}.arena{padding:12px 14px}.arena .timer{font-size:1.2rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Concentration · 专注力</h1>
+<p class="sub">No repeat. No hesitation. 5 seconds per turn.</p>
+
+<div id="setup">
+  <div class="card">
+    <div class="label">Choose a topic</div>
+    <div class="topics" id="topic-list"></div>
+  </div>
+</div>
+
+<div id="game" style="display:none;">
+  <div class="card">
+    <div class="arena">
+      <div>
+        <div class="who" id="turn-label">Your turn</div>
+        <div class="used" id="used-label">Used: 0</div>
+      </div>
+      <div class="timer" id="timer">5.0</div>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="inputbar">
+      <input type="text" id="answer-input" placeholder="Type your answer…" autocomplete="off">
+      <button class="btn" id="submit-btn">Send</button>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn ghost" id="quit-btn">Quit game</button>
+    <button class="btn ghost" id="used-btn">Show used words</button>
+  </div>
+</div>
+
+<div id="gameover" style="display:none;">
+  <div class="card gameover">
+    <h2 id="over-title">Game over</h2>
+    <p id="over-reason"></p>
+    <button class="btn" id="play-again-btn">Play again</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ---------- WORD BANKS ----------
+const TOPICS = {
+  "Animals 🐾": ["dog","cat","elephant","tiger","lion","bear","wolf","fox","deer","rabbit","horse","cow","sheep","goat","pig","duck","chicken","bird","eagle","owl","snake","frog","fish","shark","whale","dolphin","monkey","gorilla","panda","koala","kangaroo","giraffe","zebra","rhino","hippo","crocodile","turtle","penguin","seal","otter","squirrel","mouse","rat","bat","bee","ant","butterfly","spider","crab","octopus"],
+  "Countries 🌍": ["singapore","japan","china","korea","malaysia","indonesia","thailand","vietnam","philippines","india","australia","new zealand","canada","united states","mexico","brazil","argentina","chile","peru","france","germany","italy","spain","portugal","netherlands","belgium","switzerland","austria","sweden","norway","denmark","finland","poland","russia","turkey","egypt","south africa","kenya","nigeria","morocco","saudi arabia","uae","israel","greece","ireland","iceland","cuba","jamaica"],
+  "Fruits 🍎": ["apple","banana","orange","mango","grape","strawberry","blueberry","raspberry","watermelon","papaya","pineapple","kiwi","peach","pear","plum","cherry","lemon","lime","coconut","durian","lychee","rambutan","mangosteen","dragon fruit","pomegranate","fig","apricot","avocado","guava","starfruit","tangerine","grapefruit","melon","honeydew","cranberry","blackberry","gooseberry","date","olive","tomato"],
+  "Colors 🎨": ["red","orange","yellow","green","blue","purple","pink","brown","black","white","grey","gold","silver","bronze","beige","maroon","navy","teal","turquoise","cyan","magenta","violet","indigo","lavender","peach","coral","salmon","crimson","scarlet","amber","emerald","jade","ruby","sapphire","mint","olive","khaki"],
+  "Food 🍜": ["rice","noodles","bread","pasta","pizza","burger","sandwich","soup","salad","curry","sushi","ramen","dumpling","laksa","satay","rendang","nasi lemak","chicken rice","roti prata","char kway teow","hokkien mee","fried rice","porridge","omelette","pancake","waffle","cake","cookie","ice cream","chocolate","cheese","yogurt","butter","jam","honey","sugar","salt","pepper","chili","garlic","onion"],
+  "华文词语 🀄": ["月亮","日记","上海","朋友","家人","学校","老师","同学","早上","晚上","幸福","思念","孤独","自由","梦想","回忆","微笑","眼泪","时间","阳光","雨水","星星","云朵","雪花","微风","书本","铅笔","纸张","窗户","房间","城市","公园","海边","山顶","火车","飞机","旅行","故事","音乐","电影"]
+};
+
+// ---------- STATE ----------
+let topicName = "";
+let wordBank = [];
+let used = new Set();
+let currentTurn = "user";  // "user" or "ai"
+let timerInterval = null;
+let timeLeft = 5.0;
+let gameActive = false;
+const TIME_LIMIT = 5.0;
+
+// ---------- DOM ----------
+const setupEl = document.getElementById("setup");
+const gameEl = document.getElementById("game");
+const gameoverEl = document.getElementById("gameover");
+const topicListEl = document.getElementById("topic-list");
+const logEl = document.getElementById("log");
+const inputEl = document.getElementById("answer-input");
+const submitBtn = document.getElementById("submit-btn");
+const timerEl = document.getElementById("timer");
+const turnLabel = document.getElementById("turn-label");
+const usedLabel = document.getElementById("used-label");
+const overTitle = document.getElementById("over-title");
+const overReason = document.getElementById("over-reason");
+
+// ---------- SETUP UI ----------
+Object.keys(TOPICS).forEach(name => {
+  const b = document.createElement("button");
+  b.className = "btn chip";
+  b.textContent = name;
+  b.addEventListener("click", () => startGame(name));
+  topicListEl.appendChild(b);
+});
+
+// ---------- HELPERS ----------
+function normalize(s) {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function logLine(text, cls) {
+  const d = document.createElement("div");
+  d.className = "log-item " + (cls || "");
+  d.textContent = text;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function updateUsed() {
+  usedLabel.textContent = "Used: " + used.size;
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = TIME_LIMIT;
+  timerEl.classList.remove("warn");
+  timerEl.textContent = timeLeft.toFixed(1);
+  timerInterval = setInterval(() => {
+    timeLeft -= 0.1;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timeLeft = 0;
+      timerEl.textContent = "0.0";
+      timerEl.classList.add("warn");
+      if (currentTurn === "user") endGame("You", "hesitation — 5 seconds ran out.");
+      else endGame("AI", "hesitation.");
+    } else {
+      timerEl.textContent = timeLeft.toFixed(1);
+      if (timeLeft <= 2) timerEl.classList.add("warn");
+    }
+  }, 100);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+function endGame(loser, reason) {
+  if (!gameActive) return;
+  gameActive = false;
+  stopTimer();
+  inputEl.disabled = true;
+  submitBtn.disabled = true;
+  let winner = loser === "You" ? "AI" : "You";
+  overTitle.textContent = winner + " win!";
+  overReason.textContent = loser + " lost: " + reason;
+  gameEl.style.display = "none";
+  gameoverEl.style.display = "block";
+}
+
+// ---------- GAME FLOW ----------
+function startGame(name) {
+  topicName = name;
+  wordBank = TOPICS[name] || [];
+  used = new Set();
+  currentTurn = "user";
+  gameActive = true;
+  logEl.innerHTML = "";
+  gameoverEl.style.display = "none";
+  setupEl.style.display = "none";
+  gameEl.style.display = "block";
+  inputEl.disabled = false;
+  submitBtn.disabled = false;
+  inputEl.value = "";
+  inputEl.focus();
+
+  logLine("Topic: " + name + ". You go first. 5 seconds per turn.", "sys");
+  turnLabel.textContent = "Your turn";
+  updateUsed();
+  startTimer();
+}
+
+function handleUserAnswer() {
+  if (!gameActive || currentTurn !== "user") return;
+  const raw = inputEl.value;
+  const ans = normalize(raw);
+  if (!ans) return;
+
+  stopTimer();
+  logLine("You: " + raw.trim(), "user");
+  inputEl.value = "";
+
+  // check repeat
+  if (used.has(ans)) {
+    logLine("❌ '" + raw.trim() + "' was already used.", "bad");
+    endGame("You", "repeated answer.");
+    return;
+  }
+
+  // check topic
+  if (!wordBank.includes(ans)) {
+    logLine("❌ '" + raw.trim() + "' does not fit the topic.", "bad");
+    endGame("You", "answer outside topic.");
+    return;
+  }
+
+  used.add(ans);
+  updateUsed();
+
+  // AI turn
+  currentTurn = "ai";
+  turnLabel.textContent = "AI's turn";
+  setTimeout(aiTurn, 600);
+}
+
+function aiTurn() {
+  if (!gameActive) return;
+  // filter unused
+  const remaining = wordBank.filter(w => !used.has(w));
+  if (remaining.length === 0) {
+    // No more words — AI loses
+    logLine("AI has no more answers.", "sys");
+    endGame("AI", "no more valid answers.");
+    return;
+  }
+  const pick = remaining[Math.floor(Math.random() * remaining.length)];
+  used.add(pick);
+  updateUsed();
+  logLine("AI: " + pick, "ai");
+
+  // Back to user
+  currentTurn = "user";
+  turnLabel.textContent = "Your turn";
+  inputEl.disabled = false;
+  submitBtn.disabled = false;
+  inputEl.focus();
+  startTimer();
+}
+
+// ---------- EVENTS ----------
+submitBtn.addEventListener("click", handleUserAnswer);
+inputEl.addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); handleUserAnswer(); }
+});
+
+document.getElementById("quit-btn").addEventListener("click", () => {
+  if (gameActive) endGame("You", "you quit.");
+});
+
+document.getElementById("used-btn").addEventListener("click", () => {
+  logLine("Used words: " + Array.from(used).join(", "), "sys");
+});
+
+document.getElementById("play-again-btn").addEventListener("click", () => {
+  gameoverEl.style.display = "none";
+  setupEl.style.display = "block";
+});
+</script>
+</body>
+</html>
