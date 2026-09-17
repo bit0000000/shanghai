@@ -53,9 +53,15 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .tree-cat-head .caret{width:14px;text-align:center;font-size:.68rem;opacity:.7;flex-shrink:0;color:var(--accent)}
 .tree-cat-head .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tree-cat-head .count{font-size:.68rem;color:var(--accent);font-family:'Roboto Mono',monospace;font-weight:600;opacity:.75}
+.tree-cat-head .add-note,.tree-sub-head .add-note{background:none;border:none;color:inherit;opacity:0;cursor:pointer;font-size:.85rem;padding:0 2px;line-height:1;font-weight:700}
+.tree-cat-head:hover .add-note,.tree-sub-head:hover .add-note{opacity:.5}
+.tree-cat-head .add-note:hover,.tree-sub-head .add-note:hover{opacity:1;color:#1a7f37}
 .tree-cat-head .del{background:none;border:none;color:inherit;opacity:0;cursor:pointer;font-size:.85rem;padding:0 2px;line-height:1}
 .tree-cat-head:hover .del{opacity:.5}
 .tree-cat-head .del:hover{opacity:1;color:#ff6b66}
+.tree-cat-head.drop-target{background:var(--accent);color:#fff}
+.tree-cat-head.drop-target .count{color:#fff;opacity:.9}
+.tree-cat-head.drop-target .caret{color:#fff}
 .tree-sub{margin-left:14px}
 .tree-sub-head{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:24px;font-size:.82rem;font-weight:500;cursor:pointer;color:var(--muted);transition:.12s;user-select:none;position:relative}
 .tree-sub-head:hover{background:var(--accent-soft);color:var(--accent)}
@@ -68,6 +74,8 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .tree-sub-head .del{background:none;border:none;color:inherit;opacity:0;cursor:pointer;font-size:.8rem;padding:0 2px;line-height:1}
 .tree-sub-head:hover .del{opacity:.5}
 .tree-sub-head .del:hover{opacity:1;color:#ff6b66}
+.tree-sub-head.drop-target{background:var(--accent);color:#fff}
+.tree-sub-head.drop-target .count{color:#fff;opacity:.9}
 .tree-note{display:flex;align-items:center;gap:10px;padding:7px 12px 7px 30px;border-radius:24px;font-size:.82rem;cursor:pointer;color:var(--text);transition:.12s;user-select:none}
 .tree-note:hover{background:var(--accent-soft);color:var(--accent)}
 .tree-note.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
@@ -114,7 +122,11 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .note-title{width:100%;border:none;font-size:1.5rem;font-weight:700;font-family:'Montserrat',sans-serif;color:var(--accent);padding:0;margin-bottom:6px;background:transparent;letter-spacing:-.02em}
 .note-title:focus{outline:none}
 .note-title::placeholder{color:var(--muted);opacity:.5}
-.note-date{font-size:.7rem;color:var(--muted);margin-bottom:16px;font-family:'Roboto Mono',monospace;letter-spacing:.04em;font-weight:500}
+.note-meta-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.note-select{font-family:inherit;font-size:.72rem;font-weight:600;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:8px;padding:5px 10px;cursor:pointer;letter-spacing:.03em}
+.note-select:hover{border-color:var(--accent)}
+.note-select:focus{outline:none;border-color:var(--accent)}
+.note-date{font-size:.7rem;color:var(--muted);margin-bottom:0;font-family:'Roboto Mono',monospace;letter-spacing:.04em;font-weight:500}
 .editor-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:18px;align-items:center}
 .editor-toolbar button{border:none;background:none;border-radius:8px;padding:6px 10px;font-size:.85rem;cursor:pointer;font-family:inherit;color:var(--text);min-width:32px;transition:.12s;font-weight:500}
 .editor-toolbar button:hover{background:var(--hover);color:var(--accent)}
@@ -250,45 +262,10 @@ let isSyncing = false;
 let noteStatus = {};
 let globalStatus = "saved";
 let fontSize = localStorage.getItem(FONT_KEY) || "medium";
-
-const WRITING_PROMPTS = [
-  "今天最开心的一件事是……",
-  "今天最难忘的一个人是……",
-  "今天吃到的最好吃的食物是……",
-  "今天让我有点惊讶的是……",
-  "今天我想记住的一个细节是……",
-  "今天和谁聊得最多？聊了什么？",
-  "今天有什么让我想家或想朋友？",
-  "今天看到的最好看的风景是……",
-  "今天学到的一件小事是……",
-  "如果用一句话总结今天，会是什么？",
-  "今天最累的一刻是……",
-  "今天让我笑出来的是……",
-  "今天有什么让我不舒服但我想记住的？",
-  "今天最想留住的一个瞬间是……"
-];
-
-function getRandomPrompt() {
-  return WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)];
-}
-
-function applyFontSize() {
-  const sizes = { small: "0.82rem", medium: "0.92rem", large: "1.05rem" };
-  document.documentElement.style.setProperty("--body-size", sizes[fontSize] || sizes.medium);
-}
-
-function defaultData() {
-  return {
-    categories: [
-      { id: "general", name: "日常", subtabs: [] },
-      { id: "packing", name: "行李", subtabs: ["衣物", "电子", "证件"] },
-      { id: "school", name: "学校", subtabs: [] }
-    ],
-    notes: [
-      { id: Date.now(), categoryId: "general", subTab: "", title: "第一天 · 抵达", body: "<p>抵达上海。见到大家。<b>护照放在斜挎包里。</b></p>", created: Date.now() }
-    ]
-  };
-}
+const WRITING_PROMPTS = ["今天最开心的一件事是……","今天最难忘的一个人是……","今天吃到的最好吃的食物是……","今天让我有点惊讶的是……","今天我想记住的一个细节是……","今天和谁聊得最多？聊了什么？","今天有什么让我想家或想朋友？","今天看到的最好看的风景是……","今天学到的一件小事是……","如果用一句话总结今天，会是什么？","今天最累的一刻是……","今天让我笑出来的是……","今天有什么让我不舒服但我想记住的？","今天最想留住的一个瞬间是……"];
+function getRandomPrompt() { return WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)]; }
+function applyFontSize() { const sizes = { small: "0.82rem", medium: "0.92rem", large: "1.05rem" }; document.documentElement.style.setProperty("--body-size", sizes[fontSize] || sizes.medium); }
+function defaultData() { return { categories: [ { id: "general", name: "日常", subtabs: [] }, { id: "packing", name: "行李", subtabs: ["衣物", "电子", "证件"] }, { id: "school", name: "学校", subtabs: [] } ], notes: [ { id: Date.now(), categoryId: "general", subTab: "", title: "第一天 · 抵达", body: "<p>抵达上海。见到大家。<b>护照放在斜挎包里。</b></p>", created: Date.now() } ] }; }
 function loadLocal() { const s = localStorage.getItem(STORAGE_KEY); if (s) { try { return JSON.parse(s); } catch(e) {} } return null; }
 function getLocalTime() { return parseInt(localStorage.getItem(LOCAL_TIME_KEY) || "0", 10); }
 function setLocalTime(ts) { localStorage.setItem(LOCAL_TIME_KEY, ts.toString()); }
@@ -296,131 +273,37 @@ function saveLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(da
 function saveOpen() { localStorage.setItem(OPEN_KEY, JSON.stringify(openNoteIds)); }
 function saveExpanded() { localStorage.setItem(EXPAND_KEY, JSON.stringify(expandedCats)); }
 function setSyncStatus(msg, cls) { const el = document.getElementById("sync-status"); if (!el) return; el.textContent = msg || ""; el.className = "sync-status" + (cls ? " " + cls : ""); }
-
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove("show"), 1800);
-}
-
+function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), 1800); }
 async function loadFromCloud() {
   setSyncStatus("正在同步…", "syncing");
   let cloudData = null, cloudTime = 0;
-  try {
-    const res = await fetch(JSONBIN_API + "/latest", { headers: { "X-Master-Key": JSONBIN_MASTER_KEY }, cache: "no-store" });
-    if (res.ok) { const json = await res.json(); const rec = json.record; if (rec && rec.categories && rec.notes) { cloudData = rec; cloudTime = rec._lastModified || 0; } }
-    else throw new Error("HTTP " + res.status);
-  } catch (e) {
-    const local = loadLocal();
-    if (local) { data = local; setSyncStatus("离线 — 使用本机副本", "offline"); globalStatus = "offline"; }
-    else { data = defaultData(); saveLocal(); setSyncStatus("离线 — 新建日记", "offline"); globalStatus = "offline"; }
-    return;
-  }
+  try { const res = await fetch(JSONBIN_API + "/latest", { headers: { "X-Master-Key": JSONBIN_MASTER_KEY }, cache: "no-store" }); if (res.ok) { const json = await res.json(); const rec = json.record; if (rec && rec.categories && rec.notes) { cloudData = rec; cloudTime = rec._lastModified || 0; } } else throw new Error("HTTP " + res.status); } catch (e) { const local = loadLocal(); if (local) { data = local; setSyncStatus("离线 — 使用本机副本", "offline"); globalStatus = "offline"; } else { data = defaultData(); saveLocal(); setSyncStatus("离线 — 新建日记", "offline"); globalStatus = "offline"; } return; }
   const local = loadLocal(); const localTime = getLocalTime();
   if (local && localTime > cloudTime) { data = local; await pushToCloud(); return; }
   if (cloudData) { data = cloudData; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); setLocalTime(cloudTime || Date.now()); setSyncStatus("已同步", "saved"); globalStatus = "saved"; setTimeout(() => setSyncStatus(""), 2000); return; }
-  if (local) { data = local; setSyncStatus("使用本机副本", "offline"); globalStatus = "offline"; }
-  else { data = defaultData(); saveLocal(); await pushToCloud(); }
+  if (local) { data = local; setSyncStatus("使用本机副本", "offline"); globalStatus = "offline"; } else { data = defaultData(); saveLocal(); await pushToCloud(); }
 }
-
 async function pushToCloud() {
   if (isSyncing) return;
-  isSyncing = true;
-  setSyncStatus("保存中…", "syncing");
+  isSyncing = true; setSyncStatus("保存中…", "syncing");
   Object.keys(noteStatus).forEach(id => { if (noteStatus[id] === "unsaved") noteStatus[id] = "saving"; });
   renderTabs(); renderMain();
-  try {
-    const now = Date.now(); data._lastModified = now;
-    const res = await fetch(JSONBIN_API, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_MASTER_KEY }, body: JSON.stringify(data) });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    setLocalTime(now);
-    setSyncStatus("已保存", "saved");
-    Object.keys(noteStatus).forEach(id => { noteStatus[id] = "saved"; });
-    globalStatus = "saved";
-    setTimeout(() => setSyncStatus(""), 2000);
-  } catch (e) {
-    setSyncStatus("离线 — 已存本机", "offline");
-    Object.keys(noteStatus).forEach(id => { if (noteStatus[id] === "saving") noteStatus[id] = "offline"; });
-    globalStatus = "offline";
-  } finally {
-    isSyncing = false;
-    renderTabs(); renderMain();
-  }
+  try { const now = Date.now(); data._lastModified = now; const res = await fetch(JSONBIN_API, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_MASTER_KEY }, body: JSON.stringify(data) }); if (!res.ok) throw new Error("HTTP " + res.status); setLocalTime(now); setSyncStatus("已保存", "saved"); Object.keys(noteStatus).forEach(id => { noteStatus[id] = "saved"; }); globalStatus = "saved"; setTimeout(() => setSyncStatus(""), 2000); } catch (e) { setSyncStatus("离线 — 已存本机", "offline"); Object.keys(noteStatus).forEach(id => { if (noteStatus[id] === "saving") noteStatus[id] = "offline"; }); globalStatus = "offline"; } finally { isSyncing = false; renderTabs(); renderMain(); }
 }
-
-function save() {
-  saveLocal();
-  if (activeNoteId) noteStatus[activeNoteId] = "unsaved";
-  globalStatus = "unsaved";
-  renderTabs(); renderMain();
-  clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(() => {
-    if (navigator.onLine) pushToCloud();
-    else {
-      if (activeNoteId) noteStatus[activeNoteId] = "offline";
-      globalStatus = "offline";
-      setSyncStatus("离线 — 已存本机", "offline");
-      renderTabs(); renderMain();
-    }
-  }, 800);
-}
-
-function formatDate(ts) {
-  if (!ts) return "";
-  const d = new Date(ts);
-  return d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日";
-}
-
-function countWords(html) {
-  const tmp = document.createElement("div"); tmp.innerHTML = html || "";
-  const text = (tmp.textContent || "").trim(); if (!text) return 0;
-  const zh = (text.match(/[\u4e00-\u9fff]/g) || []).length;
-  const en = text.replace(/[\u4e00-\u9fff]/g, " ").trim().split(/\s+/).filter(Boolean).length;
-  return zh + en;
-}
+function save() { saveLocal(); if (activeNoteId) noteStatus[activeNoteId] = "unsaved"; globalStatus = "unsaved"; renderTabs(); renderMain(); clearTimeout(syncTimeout); syncTimeout = setTimeout(() => { if (navigator.onLine) pushToCloud(); else { if (activeNoteId) noteStatus[activeNoteId] = "offline"; globalStatus = "offline"; setSyncStatus("离线 — 已存本机", "offline"); renderTabs(); renderMain(); } }, 800); }
+function formatDate(ts) { if (!ts) return ""; const d = new Date(ts); return d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日"; }
+function countWords(html) { const tmp = document.createElement("div"); tmp.innerHTML = html || ""; const text = (tmp.textContent || "").trim(); if (!text) return 0; const zh = (text.match(/[\u4e00-\u9fff]/g) || []).length; const en = text.replace(/[\u4e00-\u9fff]/g, " ").trim().split(/\s+/).filter(Boolean).length; return zh + en; }
 function stripHtml(html) { const tmp = document.createElement("div"); tmp.innerHTML = html || ""; return (tmp.textContent || "").trim(); }
-
-function confirmDialog(title, msg, onConfirm) {
-  const o = document.createElement("div"); o.className = "confirm-overlay";
-  const b = document.createElement("div"); b.className = "confirm-box";
-  b.innerHTML = '<h3>' + title + '</h3><p>' + msg + '</p><div class="confirm-actions"><button class="btn-cancel">取消</button><button class="btn-delete">删除</button></div>';
-  o.appendChild(b); document.body.appendChild(o);
-  b.querySelector(".btn-cancel").addEventListener("click", () => o.remove());
-  b.querySelector(".btn-delete").addEventListener("click", () => { o.remove(); onConfirm(); });
-  o.addEventListener("click", e => { if (e.target === o) o.remove(); });
-}
-
-function openNote(id) {
-  if (!openNoteIds.includes(id)) openNoteIds.push(id);
-  activeNoteId = id;
-  if (!noteStatus[id]) noteStatus[id] = globalStatus === "offline" ? "offline" : "saved";
-  saveOpen();
-  renderTabs(); renderTree(); renderMain();
-  if (window.innerWidth <= 900) closeSidebar();
-}
-function closeNoteTab(id, e) {
-  if (e) e.stopPropagation();
-  const idx = openNoteIds.indexOf(id); if (idx === -1) return;
-  openNoteIds.splice(idx, 1);
-  if (activeNoteId === id) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
-  saveOpen(); renderTabs(); renderTree(); renderMain();
-}
+function confirmDialog(title, msg, onConfirm) { const o = document.createElement("div"); o.className = "confirm-overlay"; const b = document.createElement("div"); b.className = "confirm-box"; b.innerHTML = '<h3>' + title + '</h3><p>' + msg + '</p><div class="confirm-actions"><button class="btn-cancel">取消</button><button class="btn-delete">删除</button></div>'; o.appendChild(b); document.body.appendChild(o); b.querySelector(".btn-cancel").addEventListener("click", () => o.remove()); b.querySelector(".btn-delete").addEventListener("click", () => { o.remove(); onConfirm(); }); o.addEventListener("click", e => { if (e.target === o) o.remove(); }); }
+function openNote(id) { if (!openNoteIds.includes(id)) openNoteIds.push(id); activeNoteId = id; if (!noteStatus[id]) noteStatus[id] = globalStatus === "offline" ? "offline" : "saved"; saveOpen(); renderTabs(); renderTree(); renderMain(); if (window.innerWidth <= 900) closeSidebar(); }
+function closeNoteTab(id, e) { if (e) e.stopPropagation(); const idx = openNoteIds.indexOf(id); if (idx === -1) return; openNoteIds.splice(idx, 1); if (activeNoteId === id) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null; saveOpen(); renderTabs(); renderTree(); renderMain(); }
 function renderTabs() {
   const bar = document.getElementById("note-tabs"); bar.innerHTML = "";
-  if (openNoteIds.length === 0) {
-    const m = document.createElement("span"); m.className = "no-tabs";
-    m.textContent = "☰ 打开一篇日记";
-    bar.appendChild(m);
-    return;
-  }
+  if (openNoteIds.length === 0) { const m = document.createElement("span"); m.className = "no-tabs"; m.textContent = "☰ 打开一篇日记"; bar.appendChild(m); return; }
   openNoteIds.forEach(id => {
     const note = data.notes.find(n => n.id === id); if (!note) return;
-    const t = document.createElement("div");
-    t.className = "note-tab" + (id === activeNoteId ? " active" : "");
-    const dot = document.createElement("span");
-    const st = noteStatus[id] || globalStatus || "saved";
+    const t = document.createElement("div"); t.className = "note-tab" + (id === activeNoteId ? " active" : "");
+    const dot = document.createElement("span"); const st = noteStatus[id] || globalStatus || "saved";
     dot.className = "tab-dot " + (st === "saved" ? "saved" : st === "unsaved" ? "unsaved" : st === "saving" ? "saving" : st === "offline" ? "offline" : "");
     t.appendChild(dot);
     const n = document.createElement("span"); n.className = "tab-name"; n.textContent = note.title || "无标题";
@@ -431,26 +314,27 @@ function renderTabs() {
     bar.appendChild(t);
   });
 }
-
 let draggingNoteId = null;
-
+function clearDropTargets() { document.querySelectorAll(".drop-target").forEach(el => el.classList.remove("drop-target")); }
 function renderTree() {
   const tree = document.getElementById("tree");
   tree.innerHTML = "";
-  const labelHeader = document.createElement("div");
-  labelHeader.className = "tree-label";
-  labelHeader.textContent = "日记分类";
-  tree.appendChild(labelHeader);
+  const labelHeader = document.createElement("div"); labelHeader.className = "tree-label"; labelHeader.textContent = "日记分类"; tree.appendChild(labelHeader);
   const term = searchTerm.trim().toLowerCase();
   data.categories.forEach(cat => {
     const catNotes = data.notes.filter(n => n.categoryId === cat.id);
     const filteredCatNotes = term ? catNotes.filter(n => (n.title && n.title.toLowerCase().includes(term)) || (n.body && n.body.toLowerCase().includes(term))) : catNotes;
     if (term && filteredCatNotes.length === 0) return;
-
     const catEl = document.createElement("div"); catEl.className = "tree-cat";
     const head = document.createElement("div"); head.className = "tree-cat-head";
     const isExpanded = term ? true : (expandedCats[cat.id] !== false);
     head.innerHTML = '<span class="caret">' + (isExpanded ? '▾' : '▸') + '</span><span class="name">' + cat.name + '</span><span class="count">' + catNotes.length + '</span>';
+
+    const addNoteBtn = document.createElement("button");
+    addNoteBtn.className = "add-note"; addNoteBtn.textContent = "＋"; addNoteBtn.title = "在这个分类下新建日记";
+    addNoteBtn.addEventListener("click", e => { e.stopPropagation(); createNoteIn(cat.id, ""); });
+    head.appendChild(addNoteBtn);
+
     const delCat = document.createElement("button"); delCat.className = "del"; delCat.textContent = "×";
     delCat.addEventListener("click", e => {
       e.stopPropagation();
@@ -464,12 +348,19 @@ function renderTree() {
       });
     });
     head.appendChild(delCat);
-    head.addEventListener("click", () => {
-      expandedCats[cat.id] = !isExpanded;
-      saveExpanded(); renderTree();
+    head.addEventListener("click", () => { expandedCats[cat.id] = !isExpanded; saveExpanded(); renderTree(); });
+    head.addEventListener("dragover", e => { if (!draggingNoteId) return; e.preventDefault(); head.classList.add("drop-target"); });
+    head.addEventListener("dragleave", () => head.classList.remove("drop-target"));
+    head.addEventListener("drop", e => {
+      e.preventDefault(); e.stopPropagation(); head.classList.remove("drop-target");
+      if (!draggingNoteId) return;
+      const note = data.notes.find(n => n.id === draggingNoteId); if (!note) return;
+      note.categoryId = cat.id; note.subTab = ""; draggingNoteId = null;
+      expandedCats[cat.id] = true; saveExpanded();
+      save(); renderTree(); renderTabs(); renderMain();
+      showToast("已移到「" + cat.name + "」");
     });
     catEl.appendChild(head);
-
     if (isExpanded) {
       const subWrap = document.createElement("div"); subWrap.className = "tree-sub";
       if (cat.subtabs && cat.subtabs.length > 0) {
@@ -479,6 +370,12 @@ function renderTree() {
           const subKey = cat.id + "/" + sub;
           const subExpanded = term ? true : (expandedCats[subKey] !== false);
           subHead.innerHTML = '<span class="caret">' + (subExpanded ? '▾' : '▸') + '</span><span class="name">' + sub + '</span><span class="count">' + subNotes.length + '</span>';
+
+          const addNoteSub = document.createElement("button");
+          addNoteSub.className = "add-note"; addNoteSub.textContent = "＋"; addNoteSub.title = "在这个子分类下新建日记";
+          addNoteSub.addEventListener("click", e => { e.stopPropagation(); createNoteIn(cat.id, sub); });
+          subHead.appendChild(addNoteSub);
+
           const delSub = document.createElement("button"); delSub.className = "del"; delSub.textContent = "×";
           delSub.addEventListener("click", e => {
             e.stopPropagation();
@@ -489,46 +386,40 @@ function renderTree() {
             });
           });
           subHead.appendChild(delSub);
-          subHead.addEventListener("click", () => {
-            expandedCats[subKey] = !subExpanded; saveExpanded(); renderTree();
+          subHead.addEventListener("click", () => { expandedCats[subKey] = !subExpanded; saveExpanded(); renderTree(); });
+          subHead.addEventListener("dragover", e => { if (!draggingNoteId) return; e.preventDefault(); subHead.classList.add("drop-target"); });
+          subHead.addEventListener("dragleave", () => subHead.classList.remove("drop-target"));
+          subHead.addEventListener("drop", e => {
+            e.preventDefault(); e.stopPropagation(); subHead.classList.remove("drop-target");
+            if (!draggingNoteId) return;
+            const note = data.notes.find(n => n.id === draggingNoteId); if (!note) return;
+            note.categoryId = cat.id; note.subTab = sub; draggingNoteId = null;
+            expandedCats[cat.id] = true; expandedCats[subKey] = true; saveExpanded();
+            save(); renderTree(); renderTabs(); renderMain();
+            showToast("已移到「" + cat.name + " · " + sub + "」");
           });
           subWrap.appendChild(subHead);
-          if (subExpanded) {
-            subNotes.forEach(note => subWrap.appendChild(makeNoteRow(note)));
-          }
+          if (subExpanded) { subNotes.forEach(note => subWrap.appendChild(makeNoteRow(note))); }
         });
       }
       const noSubNotes = cat.subtabs && cat.subtabs.length > 0 ? filteredCatNotes.filter(n => !n.subTab) : filteredCatNotes;
       noSubNotes.forEach(note => subWrap.appendChild(makeNoteRow(note)));
       const addSub = document.createElement("div"); addSub.className = "tree-add-sub"; addSub.textContent = "＋ 子分类";
-      addSub.addEventListener("click", () => {
-        const name = prompt("新子分类名称：");
-        if (!name || !name.trim()) return;
-        if (!cat.subtabs) cat.subtabs = [];
-        if (!cat.subtabs.includes(name.trim())) cat.subtabs.push(name.trim());
-        save(); renderTree();
-      });
+      addSub.addEventListener("click", () => { const name = prompt("新子分类名称："); if (!name || !name.trim()) return; if (!cat.subtabs) cat.subtabs = []; if (!cat.subtabs.includes(name.trim())) cat.subtabs.push(name.trim()); save(); renderTree(); });
       subWrap.appendChild(addSub);
       catEl.appendChild(subWrap);
     }
     tree.appendChild(catEl);
   });
 }
-
 function makeNoteRow(note) {
   const row = document.createElement("div");
   row.className = "tree-note" + (note.id === activeNoteId ? " active" : "");
-  row.draggable = true;
-  row.dataset.noteId = note.id;
-
+  row.draggable = true; row.dataset.noteId = note.id;
   const dragH = document.createElement("span"); dragH.className = "drag-h"; dragH.textContent = "⋮⋮";
   const name = document.createElement("span"); name.className = "name"; name.textContent = note.title || "无标题";
   const del = document.createElement("button"); del.className = "del"; del.textContent = "×";
-
-  row.appendChild(dragH);
-  row.appendChild(name);
-  row.appendChild(del);
-
+  row.appendChild(dragH); row.appendChild(name); row.appendChild(del);
   del.addEventListener("click", e => {
     e.stopPropagation();
     confirmDialog("删除日记？", "这篇日记将被永久删除。", () => {
@@ -539,45 +430,34 @@ function makeNoteRow(note) {
       save(); saveOpen(); renderTree(); renderTabs(); renderMain();
     });
   });
-
   row.addEventListener("click", () => openNote(note.id));
-
-  row.addEventListener("dragstart", e => {
-    e.stopPropagation();
-    draggingNoteId = note.id;
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", String(note.id));
-    row.classList.add("dragging");
-  });
-  row.addEventListener("dragend", () => {
-    row.classList.remove("dragging");
-    document.querySelectorAll(".tree-note").forEach(el => el.classList.remove("drag-over"));
-  });
-  row.addEventListener("dragover", e => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (draggingNoteId && draggingNoteId !== note.id) row.classList.add("drag-over");
-  });
+  row.addEventListener("dragstart", e => { e.stopPropagation(); draggingNoteId = note.id; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(note.id)); row.classList.add("dragging"); });
+  row.addEventListener("dragend", () => { row.classList.remove("dragging"); clearDropTargets(); });
+  row.addEventListener("dragover", e => { if (!draggingNoteId || draggingNoteId === note.id) return; e.preventDefault(); e.stopPropagation(); row.classList.add("drag-over"); });
   row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
   row.addEventListener("drop", e => {
-    e.preventDefault();
-    e.stopPropagation();
-    row.classList.remove("drag-over");
+    e.preventDefault(); e.stopPropagation(); row.classList.remove("drag-over");
     if (!draggingNoteId || draggingNoteId === note.id) return;
     const fromIdx = data.notes.findIndex(n => n.id === draggingNoteId);
     const toIdx = data.notes.findIndex(n => n.id === note.id);
     if (fromIdx === -1 || toIdx === -1) return;
     if (data.notes[fromIdx].categoryId !== data.notes[toIdx].categoryId) return;
     if (data.notes[fromIdx].subTab !== data.notes[toIdx].subTab) return;
-    const moved = data.notes.splice(fromIdx, 1)[0];
-    data.notes.splice(toIdx, 0, moved);
-    draggingNoteId = null;
-    save(); renderTree();
+    const moved = data.notes.splice(fromIdx, 1)[0]; data.notes.splice(toIdx, 0, moved);
+    draggingNoteId = null; save(); renderTree();
   });
-
   return row;
 }
-
+function createNoteIn(categoryId, subTab) {
+  if (searchTerm) { searchTerm = ""; document.getElementById("search-input").value = ""; }
+  const newNote = { id: Date.now(), categoryId: categoryId, subTab: subTab || "", title: "", body: "", created: Date.now(), _prompt: getRandomPrompt() };
+  data.notes.unshift(newNote);
+  expandedCats[categoryId] = true;
+  if (subTab) expandedCats[categoryId + "/" + subTab] = true;
+  saveExpanded();
+  noteStatus[newNote.id] = "unsaved"; globalStatus = "unsaved";
+  save(); renderTree(); renderTabs(); openNote(newNote.id);
+}
 function renderMain() {
   const main = document.getElementById("main-inner");
   main.innerHTML = "";
@@ -590,93 +470,55 @@ function renderMain() {
   title.addEventListener("input", () => { note.title = title.value; save(); renderTabs(); renderTree(); });
   const dateEl = document.createElement("div"); dateEl.className = "note-date";
   dateEl.textContent = formatDate(note.created || note.id);
+  const metaRow = document.createElement("div"); metaRow.className = "note-meta-row";
+  metaRow.appendChild(dateEl);
+  const catSel = document.createElement("select"); catSel.className = "note-select";
+  data.categories.forEach(c => { const o = document.createElement("option"); o.value = c.id; o.textContent = c.name; if (c.id === note.categoryId) o.selected = true; catSel.appendChild(o); });
+  catSel.addEventListener("change", () => { note.categoryId = catSel.value; note.subTab = ""; save(); renderTree(); renderMain(); });
+  metaRow.appendChild(catSel);
+  const catObjSel = data.categories.find(c => c.id === note.categoryId);
+  if (catObjSel && catObjSel.subtabs && catObjSel.subtabs.length > 0) {
+    const subSel = document.createElement("select"); subSel.className = "note-select";
+    const noneOpt = document.createElement("option"); noneOpt.value = ""; noneOpt.textContent = "（无子分类）"; if (!note.subTab) noneOpt.selected = true; subSel.appendChild(noneOpt);
+    catObjSel.subtabs.forEach(s => { const o = document.createElement("option"); o.value = s; o.textContent = s; if (s === note.subTab) o.selected = true; subSel.appendChild(o); });
+    subSel.addEventListener("change", () => { note.subTab = subSel.value; save(); renderTree(); renderMain(); });
+    metaRow.appendChild(subSel);
+  }
   const toolbar = document.createElement("div"); toolbar.className = "editor-toolbar";
   toolbar.innerHTML = '<button type="button" data-cmd="bold"><b>B</b></button><button type="button" data-cmd="italic"><i>I</i></button><button type="button" data-cmd="underline"><u>U</u></button><button type="button" data-cmd="strikeThrough"><s>S</s></button><div class="sep"></div><button type="button" data-cmd="formatBlock" data-value="h1">H1</button><button type="button" data-cmd="formatBlock" data-value="h2">H2</button><button type="button" data-cmd="formatBlock" data-value="blockquote">"</button><div class="sep"></div><button type="button" data-cmd="insertUnorderedList">•</button><button type="button" data-cmd="insertOrderedList">1.</button><div class="sep"></div><button type="button" data-cmd="removeFormat">✕</button><input type="color" value="#1e3a8a"><span class="word-count" id="word-count"></span>';
   const body = document.createElement("div"); body.className = "note-body";
   body.contentEditable = "true";
-  if (!note.body || !note.body.trim()) {
-    body.setAttribute("data-placeholder", note._prompt || getRandomPrompt());
-  } else {
-    body.setAttribute("data-placeholder", "写点什么…");
-  }
+  if (!note.body || !note.body.trim()) body.setAttribute("data-placeholder", note._prompt || getRandomPrompt());
+  else body.setAttribute("data-placeholder", "写点什么…");
   body.innerHTML = note.body;
   body.addEventListener("input", () => { note.body = body.innerHTML; save(); updateWordCount(); });
   function updateWordCount() { const wc = document.getElementById("word-count"); if (wc) wc.textContent = countWords(note.body) + " 字"; }
-  toolbar.querySelectorAll("button[data-cmd]").forEach(btn => {
-    btn.addEventListener("mousedown", e => {
-      e.preventDefault(); body.focus();
-      if (btn.dataset.cmd === "formatBlock") document.execCommand("formatBlock", false, btn.dataset.value);
-      else document.execCommand(btn.dataset.cmd, false, null);
-      note.body = body.innerHTML; save(); updateWordCount();
-    });
-  });
-  const colour = toolbar.querySelector('input[type="color"]');
-  colour.addEventListener("input", e => { body.focus(); document.execCommand("foreColor", false, e.target.value); note.body = body.innerHTML; save(); });
-
+  toolbar.querySelectorAll("button[data-cmd]").forEach(btn => { btn.addEventListener("mousedown", e => { e.preventDefault(); body.focus(); if (btn.dataset.cmd === "formatBlock") document.execCommand("formatBlock", false, btn.dataset.value); else document.execCommand(btn.dataset.cmd, false, null); note.body = body.innerHTML; save(); updateWordCount(); }); });
+  const colour = toolbar.querySelector('input[type="color"]'); colour.addEventListener("input", e => { body.focus(); document.execCommand("foreColor", false, e.target.value); note.body = body.innerHTML; save(); });
   const footer = document.createElement("div"); footer.className = "note-footer";
-
-  const leftSide = document.createElement("div");
-  leftSide.style.display = "flex";
-  leftSide.style.gap = "10px";
-  leftSide.style.alignItems = "center";
-  leftSide.style.flexWrap = "wrap";
-
+  const leftSide = document.createElement("div"); leftSide.style.display = "flex"; leftSide.style.gap = "10px"; leftSide.style.alignItems = "center"; leftSide.style.flexWrap = "wrap";
   const st = noteStatus[note.id] || globalStatus || "saved";
-  const badge = document.createElement("span");
-  badge.className = "save-badge " + (st === "saved" ? "saved" : st === "unsaved" ? "unsaved" : st === "saving" ? "saving" : st === "offline" ? "offline" : "");
+  const badge = document.createElement("span"); badge.className = "save-badge " + (st === "saved" ? "saved" : st === "unsaved" ? "unsaved" : st === "saving" ? "saving" : st === "offline" ? "offline" : "");
   const bDot = document.createElement("span"); bDot.className = "save-dot";
-  const bText = document.createElement("span");
-  bText.textContent = st === "saved" ? "已保存到云端" : st === "unsaved" ? "未保存" : st === "saving" ? "保存中…" : st === "offline" ? "离线 — 仅本机" : "";
-  badge.appendChild(bDot); badge.appendChild(bText);
-  leftSide.appendChild(badge);
-
+  const bText = document.createElement("span"); bText.textContent = st === "saved" ? "已保存到云端" : st === "unsaved" ? "未保存" : st === "saving" ? "保存中…" : st === "offline" ? "离线 — 仅本机" : "";
+  badge.appendChild(bDot); badge.appendChild(bText); leftSide.appendChild(badge);
   const tags = document.createElement("div"); tags.className = "note-tags";
   const catObj = data.categories.find(c => c.id === note.categoryId);
-  const catTag = document.createElement("span"); catTag.className = "note-cat-tag"; catTag.textContent = catObj ? catObj.name : "";
-  tags.appendChild(catTag);
+  const catTag = document.createElement("span"); catTag.className = "note-cat-tag"; catTag.textContent = catObj ? catObj.name : ""; tags.appendChild(catTag);
   if (note.subTab) { const s = document.createElement("span"); s.className = "note-sub-tag"; s.textContent = note.subTab; tags.appendChild(s); }
   leftSide.appendChild(tags);
-
   const actions = document.createElement("div"); actions.className = "footer-actions";
-
   const copyBtn = document.createElement("button"); copyBtn.className = "copy-note"; copyBtn.textContent = "复制全文";
-  copyBtn.addEventListener("click", async () => {
-    const text = (note.title || "无标题") + "\n\n" + stripHtml(note.body);
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("已复制到剪贴板");
-    } catch (err) {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      ta.remove();
-      showToast("已复制到剪贴板");
-    }
-  });
+  copyBtn.addEventListener("click", async () => { const text = (note.title || "无标题") + "\n\n" + stripHtml(note.body); try { await navigator.clipboard.writeText(text); showToast("已复制到剪贴板"); } catch (err) { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); showToast("已复制到剪贴板"); } });
   actions.appendChild(copyBtn);
-
   const del = document.createElement("button"); del.className = "del-note"; del.textContent = "删除日记";
-  del.addEventListener("click", () => {
-    confirmDialog("删除日记？", "这篇日记将被永久删除。", () => {
-      const id = note.id;
-      data.notes = data.notes.filter(n => n.id !== id);
-      openNoteIds = openNoteIds.filter(x => x !== id);
-      if (activeNoteId === id) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
-      save(); saveOpen(); renderTree(); renderTabs(); renderMain();
-    });
-  });
+  del.addEventListener("click", () => { confirmDialog("删除日记？", "这篇日记将被永久删除。", () => { const id = note.id; data.notes = data.notes.filter(n => n.id !== id); openNoteIds = openNoteIds.filter(x => x !== id); if (activeNoteId === id) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null; save(); saveOpen(); renderTree(); renderTabs(); renderMain(); }); });
   actions.appendChild(del);
-
-  footer.appendChild(leftSide);
-  footer.appendChild(actions);
-
-  card.appendChild(title); card.appendChild(dateEl); card.appendChild(toolbar); card.appendChild(body); card.appendChild(footer);
+  footer.appendChild(leftSide); footer.appendChild(actions);
+  card.appendChild(title); card.appendChild(metaRow); card.appendChild(toolbar); card.appendChild(body); card.appendChild(footer);
   main.appendChild(card);
   setTimeout(updateWordCount, 0);
 }
-
 function renderWelcome(main) {
   const w = document.createElement("div"); w.className = "welcome";
   const h = document.createElement("h2"); h.textContent = "月亮。写给十一月。";
@@ -687,7 +529,6 @@ function renderWelcome(main) {
   main.appendChild(w);
   updateCountdown();
 }
-
 function updateCountdown() {
   const el = document.getElementById("countdown"); if (!el) return;
   const target = new Date("2026-11-01T00:00:00+08:00").getTime();
@@ -698,144 +539,57 @@ function updateCountdown() {
   const mins = Math.floor((diff / (1000 * 60)) % 60);
   el.textContent = days + " 天 · " + hours + " 时 · " + mins + " 分 到上海";
 }
-
 const menuBtn = document.getElementById("menu-btn");
 const backdrop = document.getElementById("backdrop");
 const sideEl = document.getElementById("sidebar");
 function openSidebar(){ sideEl.classList.add("open"); backdrop.classList.add("show"); }
 function closeSidebar(){ sideEl.classList.remove("open"); backdrop.classList.remove("show"); }
-menuBtn.addEventListener("click", () => {
-  if (sideEl.classList.contains("open")) closeSidebar(); else openSidebar();
-});
+menuBtn.addEventListener("click", () => { if (sideEl.classList.contains("open")) closeSidebar(); else openSidebar(); });
 backdrop.addEventListener("click", closeSidebar);
-
 const themeBtn = document.getElementById("theme-btn");
 if (localStorage.getItem("yueliang-dark") === "true") { document.body.classList.add("dark"); themeBtn.textContent = "☀"; }
-themeBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  const isDark = document.body.classList.contains("dark");
-  themeBtn.textContent = isDark ? "☀" : "☾";
-  localStorage.setItem("yueliang-dark", isDark);
-});
-
+themeBtn.addEventListener("click", () => { document.body.classList.toggle("dark"); const isDark = document.body.classList.contains("dark"); themeBtn.textContent = isDark ? "☀" : "☾"; localStorage.setItem("yueliang-dark", isDark); });
 const readonlyBtn = document.getElementById("readonly-btn");
 if (localStorage.getItem("yueliang-readonly") === "true") { document.body.classList.add("read-only"); readonlyBtn.classList.add("active"); }
-readonlyBtn.addEventListener("click", () => {
-  document.body.classList.toggle("read-only");
-  const isRO = document.body.classList.contains("read-only");
-  readonlyBtn.classList.toggle("active", isRO);
-  localStorage.setItem("yueliang-readonly", isRO);
-});
-
+readonlyBtn.addEventListener("click", () => { document.body.classList.toggle("read-only"); const isRO = document.body.classList.contains("read-only"); readonlyBtn.classList.toggle("active", isRO); localStorage.setItem("yueliang-readonly", isRO); });
 const fontBtn = document.getElementById("font-btn");
-function updateFontBtn() {
-  fontBtn.textContent = fontSize === "small" ? "A-" : fontSize === "large" ? "A+" : "Aa";
-}
-fontBtn.addEventListener("click", () => {
-  fontSize = fontSize === "small" ? "medium" : fontSize === "medium" ? "large" : "small";
-  localStorage.setItem(FONT_KEY, fontSize);
-  applyFontSize();
-  updateFontBtn();
-  showToast("字体：" + (fontSize === "small" ? "小" : fontSize === "medium" ? "中" : "大"));
-});
-applyFontSize();
-updateFontBtn();
-
-document.getElementById("new-note-btn").addEventListener("click", () => {
-  if (searchTerm) { searchTerm = ""; document.getElementById("search-input").value = ""; }
-  const firstCat = data.categories[0];
-  const newNote = { id: Date.now(), categoryId: firstCat ? firstCat.id : "general", subTab: "", title: "", body: "", created: Date.now(), _prompt: getRandomPrompt() };
-  data.notes.unshift(newNote);
-  expandedCats[newNote.categoryId] = true; saveExpanded();
-  noteStatus[newNote.id] = "unsaved"; globalStatus = "unsaved";
-  save(); renderTree(); renderTabs(); openNote(newNote.id);
-});
-
-document.getElementById("add-cat-btn").addEventListener("click", () => {
-  const name = prompt("新分类名称：");
-  if (!name || !name.trim()) return;
-  const id = "cat-" + Date.now();
-  data.categories.push({ id, name: name.trim(), subtabs: [] });
-  expandedCats[id] = true; saveExpanded();
-  save(); renderTree();
-});
-
+function updateFontBtn() { fontBtn.textContent = fontSize === "small" ? "A-" : fontSize === "large" ? "A+" : "Aa"; }
+fontBtn.addEventListener("click", () => { fontSize = fontSize === "small" ? "medium" : fontSize === "medium" ? "large" : "small"; localStorage.setItem(FONT_KEY, fontSize); applyFontSize(); updateFontBtn(); showToast("字体：" + (fontSize === "small" ? "小" : fontSize === "medium" ? "中" : "大")); });
+applyFontSize(); updateFontBtn();
+document.getElementById("new-note-btn").addEventListener("click", () => { const firstCat = data.categories[0]; createNoteIn(firstCat ? firstCat.id : "general", ""); });
+document.getElementById("add-cat-btn").addEventListener("click", () => { const name = prompt("新分类名称："); if (!name || !name.trim()) return; const id = "cat-" + Date.now(); data.categories.push({ id, name: name.trim(), subtabs: [] }); expandedCats[id] = true; saveExpanded(); save(); renderTree(); });
 document.getElementById("search-input").addEventListener("input", e => { searchTerm = e.target.value; renderTree(); });
-
-document.getElementById("export-btn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "yueliang-backup-" + new Date().toISOString().slice(0,10) + ".json"; a.click(); URL.revokeObjectURL(url);
-});
-
-document.getElementById("import-btn").addEventListener("click", () => {
-  const input = document.createElement("input"); input.type = "file"; input.accept = ".json";
-  input.addEventListener("change", e => {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = evt => {
-      try {
-        const imported = JSON.parse(evt.target.result);
-        if (imported.categories && imported.notes) {
-          data = imported; save();
-          openNoteIds = []; activeNoteId = null; saveOpen();
-          renderTree(); renderTabs(); renderMain();
-        }
-      } catch (err) { alert("文件无效。"); }
-    };
-    reader.readAsText(file);
-  });
-  input.click();
-});
-
+document.getElementById("export-btn").addEventListener("click", () => { const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "yueliang-backup-" + new Date().toISOString().slice(0,10) + ".json"; a.click(); URL.revokeObjectURL(url); });
+document.getElementById("import-btn").addEventListener("click", () => { const input = document.createElement("input"); input.type = "file"; input.accept = ".json"; input.addEventListener("change", e => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = evt => { try { const imported = JSON.parse(evt.target.result); if (imported.categories && imported.notes) { data = imported; save(); openNoteIds = []; activeNoteId = null; saveOpen(); renderTree(); renderTabs(); renderMain(); } } catch (err) { alert("文件无效。"); } }; reader.readAsText(file); }); input.click(); });
 function buildDocsText() {
   let text = "月亮 · Yueliang\n导出 " + formatDate(Date.now()) + "\n" + "=".repeat(60) + "\n\n";
   data.categories.forEach(cat => {
     const catNotes = data.notes.filter(n => n.categoryId === cat.id);
     text += "\n## " + cat.name.toUpperCase() + "\n" + "—".repeat(60) + "\n";
     if (catNotes.length === 0) { text += "（暂无日记）\n\n"; return; }
-    catNotes.forEach(note => {
-      const date = formatDate(note.created || note.id);
-      const title = (note.title || "无标题").trim();
-      const subTag = note.subTab ? "  [" + note.subTab + "]" : "";
-      const body = stripHtml(note.body);
-      text += "\n### " + title + subTag + "\n" + date + "\n\n" + (body || "（暂无内容）") + "\n\n";
-    });
+    catNotes.forEach(note => { const date = formatDate(note.created || note.id); const title = (note.title || "无标题").trim(); const subTag = note.subTab ? "  [" + note.subTab + "]" : ""; const body = stripHtml(note.body); text += "\n### " + title + subTag + "\n" + date + "\n\n" + (body || "（暂无内容）") + "\n\n"; });
   });
   return text;
 }
-
 const docsOverlay = document.getElementById("docs-overlay");
 const docsOutput = document.getElementById("docs-output");
 const docsStatus = document.getElementById("docs-status");
 document.getElementById("docs-btn").addEventListener("click", () => { docsOutput.value = buildDocsText(); docsStatus.textContent = ""; docsStatus.className = "docs-status"; docsOverlay.classList.add("open"); });
 document.getElementById("docs-close").addEventListener("click", () => docsOverlay.classList.remove("open"));
 docsOverlay.addEventListener("click", e => { if (e.target === docsOverlay) docsOverlay.classList.remove("open"); });
-document.getElementById("docs-copy").addEventListener("click", async () => {
-  try { await navigator.clipboard.writeText(docsOutput.value); docsStatus.textContent = "已复制。现在粘贴到 Google 文档。"; docsStatus.className = "docs-status success"; }
-  catch (err) { docsOutput.select(); document.execCommand("copy"); docsStatus.textContent = "已复制（备用方式）。"; docsStatus.className = "docs-status success"; }
-});
-document.getElementById("docs-download").addEventListener("click", () => {
-  const blob = new Blob([docsOutput.value], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "yueliang-journal-" + new Date().toISOString().slice(0,10) + ".txt"; a.click(); URL.revokeObjectURL(url);
-  docsStatus.textContent = "已下载为 .txt"; docsStatus.className = "docs-status success";
-});
-
+document.getElementById("docs-copy").addEventListener("click", async () => { try { await navigator.clipboard.writeText(docsOutput.value); docsStatus.textContent = "已复制。现在粘贴到 Google 文档。"; docsStatus.className = "docs-status success"; } catch (err) { docsOutput.select(); document.execCommand("copy"); docsStatus.textContent = "已复制（备用方式）。"; docsStatus.className = "docs-status success"; } });
+document.getElementById("docs-download").addEventListener("click", () => { const blob = new Blob([docsOutput.value], { type: "text/plain" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "yueliang-journal-" + new Date().toISOString().slice(0,10) + ".txt"; a.click(); URL.revokeObjectURL(url); docsStatus.textContent = "已下载为 .txt"; docsStatus.className = "docs-status success"; });
 window.addEventListener("online", () => { setSyncStatus("已连线 — 同步中…", "syncing"); globalStatus = "saved"; if (data) pushToCloud(); });
 window.addEventListener("offline", () => { setSyncStatus("离线 — 已存本机", "offline"); globalStatus = "offline"; renderTabs(); renderMain(); });
-
 async function init() {
   await loadFromCloud();
-  noteStatus = {};
-  globalStatus = navigator.onLine ? "saved" : "offline";
+  noteStatus = {}; globalStatus = navigator.onLine ? "saved" : "offline";
   openNoteIds = openNoteIds.filter(id => data.notes.some(n => n.id === id));
   if (activeNoteId && !data.notes.some(n => n.id === activeNoteId)) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
   if (!activeNoteId && openNoteIds.length) activeNoteId = openNoteIds[openNoteIds.length - 1];
   openNoteIds.forEach(id => { noteStatus[id] = globalStatus; });
   renderTree(); renderTabs(); renderMain();
 }
-
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 init();
 </script>
