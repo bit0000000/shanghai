@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5f7fb;--sidebar:#ffffff;--card:#fff;--text:#0f1e3d;--muted:#6a7a99;--accent:#1e3a8a;--accent-hover:#172a63;--accent-soft:#dde6f7;--line:#d4dced;--radius:16px;--sidebar-width:280px;--tabs-bg:#e2e8f4;--hover:rgba(30,58,138,.06);--danger:#b91c1c}
+:root{--bg:#f5f7fb;--sidebar:#ffffff;--card:#fff;--text:#0f1e3d;--muted:#6a7a99;--accent:#1e3a8a;--accent-hover:#172a63;--accent-soft:#dde6f7;--line:#d4dced;--radius:16px;--sidebar-width:280px;--tabs-bg:#e2e8f4;--hover:rgba(30,58,138,.06);--danger:#b91c1c;--body-size:0.92rem}
 body.dark{--bg:#0a1226;--sidebar:#0f1a36;--card:#14203f;--text:#e2e8f7;--muted:#8291b3;--accent:#4a7bd4;--accent-hover:#5f8ee0;--accent-soft:#1a2a52;--line:#24315a;--tabs-bg:#0f1a36;--hover:rgba(120,160,220,.08);--danger:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased}
@@ -26,8 +26,8 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .sidebar-header{padding:20px 20px 6px}
 .sidebar-header h1{font-size:1.2rem;font-weight:600;letter-spacing:-.01em;color:var(--accent);margin-bottom:2px}
 .sidebar-header p{font-size:.7rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
-.icon-row{display:flex;gap:6px;padding:10px 20px 4px}
-.icon-btn{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--accent);transition:.12s;display:flex;align-items:center;gap:4px}
+.icon-row{display:flex;gap:6px;padding:10px 20px 4px;flex-wrap:wrap}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--accent);transition:.12s;display:flex;align-items:center;gap:4px;line-height:1}
 .icon-btn:hover{background:var(--accent-soft);border-color:var(--accent)}
 .icon-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .sidebar-search{padding:10px 16px 8px}
@@ -71,7 +71,9 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .tree-note{display:flex;align-items:center;gap:10px;padding:7px 12px 7px 30px;border-radius:24px;font-size:.82rem;cursor:pointer;color:var(--text);transition:.12s;user-select:none}
 .tree-note:hover{background:var(--accent-soft);color:var(--accent)}
 .tree-note.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
-.tree-note .dot{font-size:.45rem;opacity:.5;flex-shrink:0;color:var(--accent)}
+.tree-note.dragging{opacity:.4}
+.tree-note.drag-over{border-top:2px solid var(--accent);margin-top:-2px}
+.tree-note .drag-h{font-size:.6rem;opacity:.35;flex-shrink:0;cursor:grab;color:var(--accent);letter-spacing:-1px}
 .tree-note .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tree-note .del{background:none;border:none;color:inherit;opacity:0;cursor:pointer;font-size:.85rem;padding:0 2px;line-height:1}
 .tree-note:hover .del{opacity:.5}
@@ -89,6 +91,11 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .note-tabs{display:flex;align-items:center;overflow-x:auto;overflow-y:hidden}
 .note-tabs::-webkit-scrollbar{height:3px}
 .note-tabs::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.tab-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#c4c4c0;transition:background .2s}
+.tab-dot.saved{background:#1a7f37}
+.tab-dot.unsaved{background:#c77700}
+.tab-dot.saving{background:var(--accent)}
+.tab-dot.offline{background:#8e8e93}
 .note-tab{display:flex;align-items:center;gap:6px;padding:6px 10px 6px 14px;margin:0 2px;border-radius:8px;font-size:.74rem;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);white-space:nowrap;max-width:200px;transition:.12s}
 .note-tab:hover{background:var(--hover)}
 .note-tab.active{background:var(--bg);color:var(--accent);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08)}
@@ -114,8 +121,8 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .editor-toolbar .sep{width:1px;background:var(--line);margin:4px 4px;align-self:stretch}
 .editor-toolbar input[type="color"]{width:28px;height:28px;border:none;border-radius:8px;cursor:pointer;background:none;padding:2px}
 .word-count{margin-left:auto;font-size:.68rem;color:var(--muted);font-family:'Roboto Mono',monospace;letter-spacing:.03em}
-.note-body{min-height:300px;font-size:.92rem;line-height:1.85;font-family:'Roboto Mono',monospace;padding:0;outline:none;color:var(--text)}
-.note-body:empty:before{content:attr(data-placeholder);color:var(--muted);opacity:.5}
+.note-body{min-height:300px;font-size:var(--body-size);line-height:1.85;font-family:'Roboto Mono',monospace;padding:0;outline:none;color:var(--text)}
+.note-body:empty:before{content:attr(data-placeholder);color:var(--muted);opacity:.55;font-style:italic}
 .note-body ul,.note-body ol{padding-left:24px;margin:8px 0}
 .note-body li{margin:4px 0}
 .note-body blockquote{border-left:3px solid var(--accent);padding-left:14px;margin:10px 0;color:var(--muted);font-style:italic}
@@ -124,6 +131,19 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .note-body h2{font-size:1.15rem}
 .note-body h3{font-size:1rem}
 .note-footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);font-size:.72rem;color:var(--muted);flex-wrap:wrap;gap:8px}
+.save-badge{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-family:'Roboto Mono',monospace;color:var(--muted);letter-spacing:.03em}
+.save-badge .save-dot{width:7px;height:7px;border-radius:50%;background:#c4c4c0}
+.save-badge.saved .save-dot{background:#1a7f37}
+.save-badge.saved{color:#1a7f37}
+.save-badge.unsaved .save-dot{background:#c77700}
+.save-badge.unsaved{color:#c77700}
+.save-badge.saving .save-dot{background:var(--accent)}
+.save-badge.saving{color:var(--accent)}
+.save-badge.offline .save-dot{background:#8e8e8e}
+.save-badge.offline{color:#8e8e8e}
+.footer-actions{display:flex;gap:6px;flex-wrap:wrap}
+.copy-note{background:none;border:1px solid var(--line);border-radius:8px;color:var(--accent);font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;padding:6px 12px;transition:.15s;letter-spacing:.06em}
+.copy-note:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
 .del-note{background:none;border:1px solid var(--line);border-radius:8px;color:var(--danger);font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;padding:6px 12px;transition:.15s;letter-spacing:.06em}
 .del-note:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
 .note-tags{display:flex;gap:6px;flex-wrap:wrap}
@@ -159,6 +179,8 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .docs-status{font-size:.72rem;color:var(--muted);margin-top:10px;min-height:1.1em;font-family:'Roboto Mono',monospace}
 .docs-status.success{color:#1a7f37}
 .docs-status.error{color:var(--danger)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:10px 20px;border-radius:24px;font-size:.78rem;font-weight:600;letter-spacing:.03em;z-index:3000;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media (max-width:700px){.main-scroll{padding:20px 16px 60px}.note{padding:20px}.note-title{font-size:1.25rem}.welcome h2{font-size:1.5rem}.welcome{padding:50px 16px}}
 </style>
 </head>
@@ -171,7 +193,7 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 <p>NOV 2026</p>
 </div>
 <div class="icon-row">
-<button class="icon-btn" id="lang-btn" title="语言">中</button>
+<button class="icon-btn" id="font-btn" title="字体大小">Aa</button>
 <button class="icon-btn" id="readonly-btn" title="只读">👁</button>
 <button class="icon-btn" id="theme-btn" title="夜间模式">☾</button>
 </div>
@@ -208,6 +230,7 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 <div class="docs-status" id="docs-status"></div>
 </div>
 </div>
+<div class="toast" id="toast"></div>
 <script>
 const JSONBIN_BIN_ID = "6aaa39f2ffd5d160530cf9dd";
 const JSONBIN_MASTER_KEY = "$2a$10$cpuBUx97MmMS6302Tbum9uqxkqGuc56jFd0lPr1OaNOjMJmO6SMdW";
@@ -216,6 +239,7 @@ const STORAGE_KEY = "yueliang-journal-v2";
 const OPEN_KEY = "yueliang-journal-open";
 const EXPAND_KEY = "yueliang-expanded";
 const LOCAL_TIME_KEY = "yueliang-last-modified";
+const FONT_KEY = "yueliang-fontsize";
 let data = null;
 let activeNoteId = null;
 let openNoteIds = JSON.parse(localStorage.getItem(OPEN_KEY) || "[]");
@@ -223,6 +247,35 @@ let expandedCats = JSON.parse(localStorage.getItem(EXPAND_KEY) || "{}");
 let searchTerm = "";
 let syncTimeout = null;
 let isSyncing = false;
+let noteStatus = {};
+let globalStatus = "saved";
+let fontSize = localStorage.getItem(FONT_KEY) || "medium";
+
+const WRITING_PROMPTS = [
+  "今天最开心的一件事是……",
+  "今天最难忘的一个人是……",
+  "今天吃到的最好吃的食物是……",
+  "今天让我有点惊讶的是……",
+  "今天我想记住的一个细节是……",
+  "今天和谁聊得最多？聊了什么？",
+  "今天有什么让我想家或想朋友？",
+  "今天看到的最好看的风景是……",
+  "今天学到的一件小事是……",
+  "如果用一句话总结今天，会是什么？",
+  "今天最累的一刻是……",
+  "今天让我笑出来的是……",
+  "今天有什么让我不舒服但我想记住的？",
+  "今天最想留住的一个瞬间是……"
+];
+
+function getRandomPrompt() {
+  return WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)];
+}
+
+function applyFontSize() {
+  const sizes = { small: "0.82rem", medium: "0.92rem", large: "1.05rem" };
+  document.documentElement.style.setProperty("--body-size", sizes[fontSize] || sizes.medium);
+}
 
 function defaultData() {
   return {
@@ -244,6 +297,14 @@ function saveOpen() { localStorage.setItem(OPEN_KEY, JSON.stringify(openNoteIds)
 function saveExpanded() { localStorage.setItem(EXPAND_KEY, JSON.stringify(expandedCats)); }
 function setSyncStatus(msg, cls) { const el = document.getElementById("sync-status"); if (!el) return; el.textContent = msg || ""; el.className = "sync-status" + (cls ? " " + cls : ""); }
 
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
 async function loadFromCloud() {
   setSyncStatus("正在同步…", "syncing");
   let cloudData = null, cloudTime = 0;
@@ -253,14 +314,14 @@ async function loadFromCloud() {
     else throw new Error("HTTP " + res.status);
   } catch (e) {
     const local = loadLocal();
-    if (local) { data = local; setSyncStatus("离线 — 使用本机副本", "offline"); }
-    else { data = defaultData(); saveLocal(); setSyncStatus("离线 — 新建日记", "offline"); }
+    if (local) { data = local; setSyncStatus("离线 — 使用本机副本", "offline"); globalStatus = "offline"; }
+    else { data = defaultData(); saveLocal(); setSyncStatus("离线 — 新建日记", "offline"); globalStatus = "offline"; }
     return;
   }
   const local = loadLocal(); const localTime = getLocalTime();
   if (local && localTime > cloudTime) { data = local; await pushToCloud(); return; }
-  if (cloudData) { data = cloudData; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); setLocalTime(cloudTime || Date.now()); setSyncStatus("已同步", "saved"); setTimeout(() => setSyncStatus(""), 2000); return; }
-  if (local) { data = local; setSyncStatus("使用本机副本", "offline"); }
+  if (cloudData) { data = cloudData; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); setLocalTime(cloudTime || Date.now()); setSyncStatus("已同步", "saved"); globalStatus = "saved"; setTimeout(() => setSyncStatus(""), 2000); return; }
+  if (local) { data = local; setSyncStatus("使用本机副本", "offline"); globalStatus = "offline"; }
   else { data = defaultData(); saveLocal(); await pushToCloud(); }
 }
 
@@ -268,19 +329,42 @@ async function pushToCloud() {
   if (isSyncing) return;
   isSyncing = true;
   setSyncStatus("保存中…", "syncing");
+  Object.keys(noteStatus).forEach(id => { if (noteStatus[id] === "unsaved") noteStatus[id] = "saving"; });
+  renderTabs(); renderMain();
   try {
     const now = Date.now(); data._lastModified = now;
     const res = await fetch(JSONBIN_API, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_MASTER_KEY }, body: JSON.stringify(data) });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    setLocalTime(now); setSyncStatus("已保存", "saved"); setTimeout(() => setSyncStatus(""), 2000);
-  } catch (e) { setSyncStatus("离线 — 已存本机", "offline"); }
-  finally { isSyncing = false; }
+    setLocalTime(now);
+    setSyncStatus("已保存", "saved");
+    Object.keys(noteStatus).forEach(id => { noteStatus[id] = "saved"; });
+    globalStatus = "saved";
+    setTimeout(() => setSyncStatus(""), 2000);
+  } catch (e) {
+    setSyncStatus("离线 — 已存本机", "offline");
+    Object.keys(noteStatus).forEach(id => { if (noteStatus[id] === "saving") noteStatus[id] = "offline"; });
+    globalStatus = "offline";
+  } finally {
+    isSyncing = false;
+    renderTabs(); renderMain();
+  }
 }
 
 function save() {
   saveLocal();
+  if (activeNoteId) noteStatus[activeNoteId] = "unsaved";
+  globalStatus = "unsaved";
+  renderTabs(); renderMain();
   clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(() => { if (navigator.onLine) pushToCloud(); else setSyncStatus("离线 — 已存本机", "offline"); }, 800);
+  syncTimeout = setTimeout(() => {
+    if (navigator.onLine) pushToCloud();
+    else {
+      if (activeNoteId) noteStatus[activeNoteId] = "offline";
+      globalStatus = "offline";
+      setSyncStatus("离线 — 已存本机", "offline");
+      renderTabs(); renderMain();
+    }
+  }, 800);
 }
 
 function formatDate(ts) {
@@ -311,6 +395,7 @@ function confirmDialog(title, msg, onConfirm) {
 function openNote(id) {
   if (!openNoteIds.includes(id)) openNoteIds.push(id);
   activeNoteId = id;
+  if (!noteStatus[id]) noteStatus[id] = globalStatus === "offline" ? "offline" : "saved";
   saveOpen();
   renderTabs(); renderTree(); renderMain();
   if (window.innerWidth <= 900) closeSidebar();
@@ -324,10 +409,20 @@ function closeNoteTab(id, e) {
 }
 function renderTabs() {
   const bar = document.getElementById("note-tabs"); bar.innerHTML = "";
-  if (openNoteIds.length === 0) { const m = document.createElement("span"); m.className = "no-tabs"; m.textContent = "☰ 打开一篇日记"; bar.appendChild(m); return; }
+  if (openNoteIds.length === 0) {
+    const m = document.createElement("span"); m.className = "no-tabs";
+    m.textContent = "☰ 打开一篇日记";
+    bar.appendChild(m);
+    return;
+  }
   openNoteIds.forEach(id => {
     const note = data.notes.find(n => n.id === id); if (!note) return;
-    const t = document.createElement("div"); t.className = "note-tab" + (id === activeNoteId ? " active" : "");
+    const t = document.createElement("div");
+    t.className = "note-tab" + (id === activeNoteId ? " active" : "");
+    const dot = document.createElement("span");
+    const st = noteStatus[id] || globalStatus || "saved";
+    dot.className = "tab-dot " + (st === "saved" ? "saved" : st === "unsaved" ? "unsaved" : st === "saving" ? "saving" : st === "offline" ? "offline" : "");
+    t.appendChild(dot);
     const n = document.createElement("span"); n.className = "tab-name"; n.textContent = note.title || "无标题";
     const c = document.createElement("button"); c.className = "tab-close"; c.textContent = "×";
     c.addEventListener("click", e => closeNoteTab(id, e));
@@ -336,6 +431,8 @@ function renderTabs() {
     bar.appendChild(t);
   });
 }
+
+let draggingNoteId = null;
 
 function renderTree() {
   const tree = document.getElementById("tree");
@@ -421,8 +518,17 @@ function renderTree() {
 function makeNoteRow(note) {
   const row = document.createElement("div");
   row.className = "tree-note" + (note.id === activeNoteId ? " active" : "");
-  row.innerHTML = '<span class="dot">●</span><span class="name">' + (note.title || "无标题") + '</span>';
+  row.draggable = true;
+  row.dataset.noteId = note.id;
+
+  const dragH = document.createElement("span"); dragH.className = "drag-h"; dragH.textContent = "⋮⋮";
+  const name = document.createElement("span"); name.className = "name"; name.textContent = note.title || "无标题";
   const del = document.createElement("button"); del.className = "del"; del.textContent = "×";
+
+  row.appendChild(dragH);
+  row.appendChild(name);
+  row.appendChild(del);
+
   del.addEventListener("click", e => {
     e.stopPropagation();
     confirmDialog("删除日记？", "这篇日记将被永久删除。", () => {
@@ -433,8 +539,42 @@ function makeNoteRow(note) {
       save(); saveOpen(); renderTree(); renderTabs(); renderMain();
     });
   });
-  row.appendChild(del);
+
   row.addEventListener("click", () => openNote(note.id));
+
+  row.addEventListener("dragstart", e => {
+    e.stopPropagation();
+    draggingNoteId = note.id;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(note.id));
+    row.classList.add("dragging");
+  });
+  row.addEventListener("dragend", () => {
+    row.classList.remove("dragging");
+    document.querySelectorAll(".tree-note").forEach(el => el.classList.remove("drag-over"));
+  });
+  row.addEventListener("dragover", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggingNoteId && draggingNoteId !== note.id) row.classList.add("drag-over");
+  });
+  row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
+  row.addEventListener("drop", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    row.classList.remove("drag-over");
+    if (!draggingNoteId || draggingNoteId === note.id) return;
+    const fromIdx = data.notes.findIndex(n => n.id === draggingNoteId);
+    const toIdx = data.notes.findIndex(n => n.id === note.id);
+    if (fromIdx === -1 || toIdx === -1) return;
+    if (data.notes[fromIdx].categoryId !== data.notes[toIdx].categoryId) return;
+    if (data.notes[fromIdx].subTab !== data.notes[toIdx].subTab) return;
+    const moved = data.notes.splice(fromIdx, 1)[0];
+    data.notes.splice(toIdx, 0, moved);
+    draggingNoteId = null;
+    save(); renderTree();
+  });
+
   return row;
 }
 
@@ -453,7 +593,12 @@ function renderMain() {
   const toolbar = document.createElement("div"); toolbar.className = "editor-toolbar";
   toolbar.innerHTML = '<button type="button" data-cmd="bold"><b>B</b></button><button type="button" data-cmd="italic"><i>I</i></button><button type="button" data-cmd="underline"><u>U</u></button><button type="button" data-cmd="strikeThrough"><s>S</s></button><div class="sep"></div><button type="button" data-cmd="formatBlock" data-value="h1">H1</button><button type="button" data-cmd="formatBlock" data-value="h2">H2</button><button type="button" data-cmd="formatBlock" data-value="blockquote">"</button><div class="sep"></div><button type="button" data-cmd="insertUnorderedList">•</button><button type="button" data-cmd="insertOrderedList">1.</button><div class="sep"></div><button type="button" data-cmd="removeFormat">✕</button><input type="color" value="#1e3a8a"><span class="word-count" id="word-count"></span>';
   const body = document.createElement("div"); body.className = "note-body";
-  body.contentEditable = "true"; body.setAttribute("data-placeholder", "写点什么…");
+  body.contentEditable = "true";
+  if (!note.body || !note.body.trim()) {
+    body.setAttribute("data-placeholder", note._prompt || getRandomPrompt());
+  } else {
+    body.setAttribute("data-placeholder", "写点什么…");
+  }
   body.innerHTML = note.body;
   body.addEventListener("input", () => { note.body = body.innerHTML; save(); updateWordCount(); });
   function updateWordCount() { const wc = document.getElementById("word-count"); if (wc) wc.textContent = countWords(note.body) + " 字"; }
@@ -467,12 +612,51 @@ function renderMain() {
   });
   const colour = toolbar.querySelector('input[type="color"]');
   colour.addEventListener("input", e => { body.focus(); document.execCommand("foreColor", false, e.target.value); note.body = body.innerHTML; save(); });
+
   const footer = document.createElement("div"); footer.className = "note-footer";
+
+  const leftSide = document.createElement("div");
+  leftSide.style.display = "flex";
+  leftSide.style.gap = "10px";
+  leftSide.style.alignItems = "center";
+  leftSide.style.flexWrap = "wrap";
+
+  const st = noteStatus[note.id] || globalStatus || "saved";
+  const badge = document.createElement("span");
+  badge.className = "save-badge " + (st === "saved" ? "saved" : st === "unsaved" ? "unsaved" : st === "saving" ? "saving" : st === "offline" ? "offline" : "");
+  const bDot = document.createElement("span"); bDot.className = "save-dot";
+  const bText = document.createElement("span");
+  bText.textContent = st === "saved" ? "已保存到云端" : st === "unsaved" ? "未保存" : st === "saving" ? "保存中…" : st === "offline" ? "离线 — 仅本机" : "";
+  badge.appendChild(bDot); badge.appendChild(bText);
+  leftSide.appendChild(badge);
+
   const tags = document.createElement("div"); tags.className = "note-tags";
   const catObj = data.categories.find(c => c.id === note.categoryId);
   const catTag = document.createElement("span"); catTag.className = "note-cat-tag"; catTag.textContent = catObj ? catObj.name : "";
   tags.appendChild(catTag);
   if (note.subTab) { const s = document.createElement("span"); s.className = "note-sub-tag"; s.textContent = note.subTab; tags.appendChild(s); }
+  leftSide.appendChild(tags);
+
+  const actions = document.createElement("div"); actions.className = "footer-actions";
+
+  const copyBtn = document.createElement("button"); copyBtn.className = "copy-note"; copyBtn.textContent = "复制全文";
+  copyBtn.addEventListener("click", async () => {
+    const text = (note.title || "无标题") + "\n\n" + stripHtml(note.body);
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("已复制到剪贴板");
+    } catch (err) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      showToast("已复制到剪贴板");
+    }
+  });
+  actions.appendChild(copyBtn);
+
   const del = document.createElement("button"); del.className = "del-note"; del.textContent = "删除日记";
   del.addEventListener("click", () => {
     confirmDialog("删除日记？", "这篇日记将被永久删除。", () => {
@@ -483,7 +667,11 @@ function renderMain() {
       save(); saveOpen(); renderTree(); renderTabs(); renderMain();
     });
   });
-  footer.appendChild(tags); footer.appendChild(del);
+  actions.appendChild(del);
+
+  footer.appendChild(leftSide);
+  footer.appendChild(actions);
+
   card.appendChild(title); card.appendChild(dateEl); card.appendChild(toolbar); card.appendChild(body); card.appendChild(footer);
   main.appendChild(card);
   setTimeout(updateWordCount, 0);
@@ -539,12 +727,27 @@ readonlyBtn.addEventListener("click", () => {
   localStorage.setItem("yueliang-readonly", isRO);
 });
 
+const fontBtn = document.getElementById("font-btn");
+function updateFontBtn() {
+  fontBtn.textContent = fontSize === "small" ? "A-" : fontSize === "large" ? "A+" : "Aa";
+}
+fontBtn.addEventListener("click", () => {
+  fontSize = fontSize === "small" ? "medium" : fontSize === "medium" ? "large" : "small";
+  localStorage.setItem(FONT_KEY, fontSize);
+  applyFontSize();
+  updateFontBtn();
+  showToast("字体：" + (fontSize === "small" ? "小" : fontSize === "medium" ? "中" : "大"));
+});
+applyFontSize();
+updateFontBtn();
+
 document.getElementById("new-note-btn").addEventListener("click", () => {
   if (searchTerm) { searchTerm = ""; document.getElementById("search-input").value = ""; }
   const firstCat = data.categories[0];
-  const newNote = { id: Date.now(), categoryId: firstCat ? firstCat.id : "general", subTab: "", title: "", body: "", created: Date.now() };
+  const newNote = { id: Date.now(), categoryId: firstCat ? firstCat.id : "general", subTab: "", title: "", body: "", created: Date.now(), _prompt: getRandomPrompt() };
   data.notes.unshift(newNote);
   expandedCats[newNote.categoryId] = true; saveExpanded();
+  noteStatus[newNote.id] = "unsaved"; globalStatus = "unsaved";
   save(); renderTree(); renderTabs(); openNote(newNote.id);
 });
 
@@ -619,14 +822,17 @@ document.getElementById("docs-download").addEventListener("click", () => {
   docsStatus.textContent = "已下载为 .txt"; docsStatus.className = "docs-status success";
 });
 
-window.addEventListener("online", () => { setSyncStatus("已连线 — 同步中…", "syncing"); if (data) pushToCloud(); });
-window.addEventListener("offline", () => { setSyncStatus("离线 — 已存本机", "offline"); });
+window.addEventListener("online", () => { setSyncStatus("已连线 — 同步中…", "syncing"); globalStatus = "saved"; if (data) pushToCloud(); });
+window.addEventListener("offline", () => { setSyncStatus("离线 — 已存本机", "offline"); globalStatus = "offline"; renderTabs(); renderMain(); });
 
 async function init() {
   await loadFromCloud();
+  noteStatus = {};
+  globalStatus = navigator.onLine ? "saved" : "offline";
   openNoteIds = openNoteIds.filter(id => data.notes.some(n => n.id === id));
   if (activeNoteId && !data.notes.some(n => n.id === activeNoteId)) activeNoteId = openNoteIds.length ? openNoteIds[openNoteIds.length - 1] : null;
   if (!activeNoteId && openNoteIds.length) activeNoteId = openNoteIds[openNoteIds.length - 1];
+  openNoteIds.forEach(id => { noteStatus[id] = globalStatus; });
   renderTree(); renderTabs(); renderMain();
 }
 
