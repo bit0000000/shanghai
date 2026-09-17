@@ -6,93 +6,342 @@
 <title>Concentration · 专注力</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5f7fb;--card:#ffffff;--text:#0f1e3d;--muted:#6a7a99;--accent:#1e3a8a;--accent-hover:#172a63;--accent-soft:#dde6f7;--line:#d4dced;--radius:16px;--danger:#b91c1c;--success:#1a7f37}
+:root{
+  --bg:#eef1f7;--chat-bg:#ffffff;--header-bg:#ffffff;
+  --text:#0f1e3d;--muted:#6a7a99;--accent:#1e3a8a;--accent-hover:#172a63;
+  --accent-soft:#dde6f7;--line:#d4dced;
+  --bubble-user:#1e3a8a;--bubble-user-text:#ffffff;
+  --bubble-ai:#f0f3fa;--bubble-ai-text:#0f1e3d;
+  --bubble-sys-bg:#e6ebf5;--bubble-sys-text:#4a5875;
+  --danger:#b91c1c;--danger-soft:#fbe9e9;--success:#1a7f37;--success-soft:#e6f4ea;
+  --shadow:0 1px 2px rgba(15,30,61,.06);
+}
+body.dark{
+  --bg:#070d1c;--chat-bg:#0f1a36;--header-bg:#0f1a36;
+  --text:#e2e8f7;--muted:#8291b3;--accent:#4a7bd4;--accent-hover:#5f8ee0;
+  --accent-soft:#1a2a52;--line:#24315a;
+  --bubble-user:#4a7bd4;--bubble-user-text:#0a1226;
+  --bubble-ai:#1a2a52;--bubble-ai-text:#e2e8f7;
+  --bubble-sys-bg:#14203f;--bubble-sys-text:#8291b3;
+  --danger:#ef4444;--danger-soft:rgba(239,68,68,.15);--success:#4ade80;--success-soft:rgba(74,222,128,.12);
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px;display:flex;justify-content:center;align-items:flex-start;-webkit-font-smoothing:antialiased}
-.wrap{width:100%;max-width:640px}
-h1{font-size:1.6rem;font-weight:700;color:var(--accent);letter-spacing:-.02em;margin-bottom:4px}
-.sub{font-size:.85rem;color:var(--muted);margin-bottom:24px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:16px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-weight:600;transition:.12s}
-.btn{padding:10px 16px;background:var(--accent);color:#fff;font-size:.85rem;letter-spacing:.03em}
-.btn:hover{background:var(--accent-hover)}
-.btn.ghost{background:none;border:1px solid var(--line);color:var(--text)}
-.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
-.btn.chip{background:var(--accent-soft);color:var(--accent);padding:8px 14px;font-size:.8rem;border-radius:24px}
-.btn.chip:hover{background:var(--accent);color:#fff}
-.topics{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-.label{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
-.arena{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;background:var(--accent-soft);border-radius:12px;margin-bottom:16px}
-.arena .who{font-size:.85rem;font-weight:600;color:var(--accent)}
-.arena .timer{font-family:'Roboto Mono',monospace;font-size:1.4rem;font-weight:600;color:var(--accent);min-width:60px;text-align:right}
-.arena .timer.warn{color:var(--danger)}
-.log{max-height:340px;overflow-y:auto;padding:6px 2px;display:flex;flex-direction:column;gap:6px}
-.log-item{font-size:.88rem;padding:8px 12px;border-radius:10px;line-height:1.5;word-break:break-word}
-.log-item.ai{background:var(--accent-soft);color:var(--accent);align-self:flex-start;max-width:85%}
-.log-item.user{background:var(--bg);border:1px solid var(--line);align-self:flex-end;max-width:85%}
-.log-item.sys{background:none;color:var(--muted);font-style:italic;font-size:.78rem;align-self:center;text-align:center}
-.log-item.bad{background:#fbe9e9;color:var(--danger)}
-.log-item.good{background:#e6f4ea;color:var(--success)}
-.inputbar{display:flex;gap:8px;margin-top:14px}
-.inputbar input{flex:1;padding:12px 16px;border:1px solid var(--line);border-radius:24px;font-family:inherit;font-size:.9rem;background:var(--bg);color:var(--text)}
-.inputbar input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
-.inputbar input:disabled{opacity:.5}
-.used{font-size:.78rem;color:var(--muted);margin-top:12px;line-height:1.7}
-.used b{color:var(--text);font-weight:600}
-.gameover{text-align:center;padding:20px 0}
-.gameover h2{font-size:1.3rem;color:var(--accent);margin-bottom:8px}
-.gameover p{font-size:.9rem;color:var(--muted);margin-bottom:16px}
-@media (max-width:520px){h1{font-size:1.3rem}.arena{padding:12px 14px}.arena .timer{font-size:1.2rem}}
+html,body{height:100%}
+body{
+  font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s,color .25s;
+  display:flex;justify-content:center;align-items:stretch;
+  overflow:hidden;
+}
+
+.app{
+  width:100%;max-width:720px;height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  background:var(--chat-bg);
+  transition:background .25s;
+  position:relative;
+}
+@media (min-width:760px){
+  .app{height:calc(100dvh - 32px);margin:16px 0;border-radius:20px;box-shadow:0 12px 40px rgba(15,30,61,.12);overflow:hidden}
+  body.dark .app{box-shadow:0 12px 40px rgba(0,0,0,.5)}
+}
+
+/* ───── Header ───── */
+.header{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;background:var(--header-bg);
+  border-bottom:1px solid var(--line);
+  flex-shrink:0;position:relative;z-index:2;
+}
+.header .title{
+  font-size:.85rem;font-weight:700;color:var(--text);
+  letter-spacing:-.01em;line-height:1.2;
+}
+.header .title small{display:block;font-size:.68rem;color:var(--muted);font-weight:500;letter-spacing:.05em}
+.header .spacer{flex:1}
+.round-pill{
+  font-size:.7rem;font-weight:700;letter-spacing:.06em;
+  background:var(--accent-soft);color:var(--accent);
+  padding:5px 10px;border-radius:20px;font-family:'Roboto Mono',monospace;
+}
+.icon-btn{
+  background:none;border:1px solid var(--line);border-radius:10px;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  color:var(--accent);font-size:1rem;cursor:pointer;transition:.15s;font-family:inherit;
+}
+.icon-btn:hover{background:var(--accent-soft);border-color:var(--accent)}
+
+/* ───── Big timer ───── */
+.timer-bar{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  padding:16px 16px 12px;background:var(--header-bg);
+  border-bottom:1px solid var(--line);flex-shrink:0;
+}
+.timer{
+  font-family:'Roboto Mono',monospace;font-weight:600;
+  font-size:3.2rem;line-height:1;
+  color:var(--accent);letter-spacing:-.03em;
+  min-width:130px;text-align:center;
+  transition:color .2s;
+  font-variant-numeric:tabular-nums;
+}
+.timer.warn{color:var(--danger)}
+.timer.idle{color:var(--muted);opacity:.5}
+.turn-label{
+  font-size:.78rem;font-weight:700;color:var(--muted);
+  letter-spacing:.08em;text-transform:uppercase;
+}
+
+/* ───── Chat area ───── */
+.chat{
+  flex:1;overflow-y:auto;
+  padding:20px 16px 8px;
+  display:flex;flex-direction:column;gap:10px;
+  background:var(--chat-bg);
+  scroll-behavior:smooth;
+}
+.chat::-webkit-scrollbar{width:6px}
+.chat::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+.msg{max-width:80%;display:flex;flex-direction:column;gap:3px;animation:pop .18s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.msg .bubble{
+  padding:10px 14px;border-radius:18px;
+  font-size:.92rem;line-height:1.5;
+  word-break:break-word;
+}
+.msg .meta{font-size:.65rem;color:var(--muted);letter-spacing:.05em;padding:0 6px;font-weight:500}
+
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.user .bubble{background:var(--bubble-user);color:var(--bubble-user-text);border-bottom-right-radius:6px}
+
+.msg.ai{align-self:flex-start;align-items:flex-start}
+.msg.ai .bubble{background:var(--bubble-ai);color:var(--bubble-ai-text);border-bottom-left-radius:6px}
+
+.msg.sys{align-self:center;align-items:center;max-width:90%}
+.msg.sys .bubble{
+  background:var(--bubble-sys-bg);color:var(--bubble-sys-text);
+  font-size:.78rem;font-style:italic;padding:6px 14px;border-radius:14px;
+  text-align:center;
+}
+
+.msg.bad .bubble{background:var(--danger-soft);color:var(--danger);font-weight:600}
+.msg.good .bubble{background:var(--success-soft);color:var(--success);font-weight:600}
+
+.round-sep{
+  align-self:stretch;display:flex;align-items:center;gap:10px;
+  color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;margin:10px 0 4px;
+}
+.round-sep::before,.round-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ───── Input bar ───── */
+.input-bar{
+  display:flex;gap:8px;padding:12px 16px 16px;
+  background:var(--header-bg);border-top:1px solid var(--line);
+  flex-shrink:0;
+}
+.input-bar input{
+  flex:1;padding:12px 18px;border:1px solid var(--line);border-radius:24px;
+  font-family:inherit;font-size:.92rem;background:var(--bg);color:var(--text);
+  transition:.15s;
+}
+.input-bar input:focus{outline:none;border-color:var(--accent);background:var(--chat-bg);box-shadow:0 0 0 3px var(--accent-soft)}
+.input-bar input:disabled{opacity:.5}
+.send-btn{
+  padding:0 22px;border:none;border-radius:24px;
+  background:var(--accent);color:#fff;font-family:inherit;
+  font-size:.85rem;font-weight:700;letter-spacing:.04em;cursor:pointer;
+  transition:.12s;
+}
+.send-btn:hover{background:var(--accent-hover)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ───── Floating actions ───── */
+.actions{
+  display:flex;gap:6px;padding:0 16px 12px;background:var(--header-bg);
+  flex-shrink:0;flex-wrap:wrap;
+}
+.actions button{
+  background:none;border:1px solid var(--line);border-radius:20px;
+  padding:6px 12px;font-size:.72rem;font-weight:600;color:var(--muted);
+  cursor:pointer;font-family:inherit;transition:.15s;letter-spacing:.03em;
+}
+.actions button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ───── Overlays ───── */
+.overlay{
+  position:fixed;inset:0;background:rgba(10,18,38,.55);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;z-index:100;backdrop-filter:blur(3px);
+  animation:fadeIn .18s ease;
+}
+.overlay.open{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* Topic picker */
+.topic-modal{
+  width:100%;max-width:560px;max-height:85vh;
+  background:var(--chat-bg);border-radius:20px;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.35);
+}
+.topic-head{
+  padding:20px 20px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;
+}
+.topic-head h2{font-size:1.05rem;font-weight:700;color:var(--accent);letter-spacing:-.01em}
+.topic-head p{font-size:.75rem;color:var(--muted);margin-top:2px}
+.topic-head .close{
+  margin-left:auto;background:none;border:none;color:var(--muted);
+  font-size:1.4rem;cursor:pointer;padding:4px 8px;border-radius:8px;line-height:1;
+}
+.topic-head .close:hover{background:var(--bg);color:var(--text)}
+.topic-search{padding:12px 20px 8px}
+.topic-search input{
+  width:100%;padding:11px 16px;border:1px solid var(--line);border-radius:24px;
+  font-family:inherit;font-size:.85rem;background:var(--bg);color:var(--text);
+}
+.topic-search input:focus{outline:none;border-color:var(--accent);background:var(--chat-bg)}
+.topic-list{
+  flex:1;overflow-y:auto;padding:8px 12px 16px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.topic-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:12px;cursor:pointer;
+  font-size:.92rem;font-weight:500;color:var(--text);
+  transition:.12s;font-family:inherit;text-align:left;
+  background:none;border:none;width:100%;
+}
+.topic-row:hover{background:var(--accent-soft);color:var(--accent)}
+.topic-row .count{
+  margin-left:auto;font-size:.7rem;color:var(--muted);
+  font-family:'Roboto Mono',monospace;font-weight:600;
+}
+.topic-row:hover .count{color:var(--accent)}
+
+/* Countdown */
+.countdown-modal{
+  text-align:center;color:#fff;
+  font-family:'Roboto Mono',monospace;font-weight:600;
+  font-size:clamp(5rem,20vw,10rem);letter-spacing:-.04em;
+  text-shadow:0 4px 30px rgba(0,0,0,.4);
+  animation:pulseNum .9s ease;
+}
+@keyframes pulseNum{
+  0%{transform:scale(.7);opacity:0}
+  40%{transform:scale(1.05);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+
+/* Game over */
+.over-modal{
+  background:var(--chat-bg);border-radius:20px;
+  padding:32px 28px;max-width:400px;width:100%;
+  text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.35);
+}
+.over-modal h2{font-size:1.4rem;color:var(--accent);margin-bottom:8px;letter-spacing:-.02em}
+.over-modal p{font-size:.88rem;color:var(--muted);margin-bottom:22px;line-height:1.6}
+.over-modal .stat{
+  font-family:'Roboto Mono',monospace;font-size:.75rem;
+  color:var(--muted);margin-bottom:20px;letter-spacing:.05em;
+}
+.over-modal .stat b{color:var(--accent);font-size:.95rem}
+.over-modal .row{display:flex;gap:8px}
+.over-modal button{
+  flex:1;padding:12px;border-radius:12px;border:none;
+  font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;
+  letter-spacing:.04em;transition:.12s;
+}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:520px){
+  .timer{font-size:2.6rem;min-width:100px}
+  .msg{max-width:88%}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>Concentration · 专注力</h1>
-<p class="sub">No repeat. No hesitation. 5 seconds per turn.</p>
+<div class="app">
 
-<div id="setup">
-  <div class="card">
-    <div class="label">Choose a topic</div>
-    <div class="topics" id="topic-list"></div>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title">Concentration<small>专注力</small></div>
+    <div class="spacer"></div>
+    <div class="round-pill" id="round-pill">Round —</div>
+    <button class="icon-btn" id="theme-btn" title="Day / Night">☾</button>
+  </div>
+
+  <!-- TIMER -->
+  <div class="timer-bar">
+    <div class="timer idle" id="timer">10.0</div>
+    <div class="turn-label" id="turn-label">Ready</div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat" id="chat"></div>
+
+  <!-- INPUT -->
+  <div class="input-bar">
+    <input type="text" id="answer-input" placeholder="Choose a topic to begin…" autocomplete="off" disabled>
+    <button class="send-btn" id="submit-btn" disabled>Send</button>
+  </div>
+  <div class="actions">
+    <button id="topic-btn">🎲 Change topic</button>
+    <button id="used-btn">📋 Used words</button>
+    <button id="quit-btn">✕ Quit</button>
   </div>
 </div>
 
-<div id="game" style="display:none;">
-  <div class="card">
-    <div class="arena">
+<!-- TOPIC PICKER -->
+<div class="overlay" id="topic-overlay">
+  <div class="topic-modal">
+    <div class="topic-head">
       <div>
-        <div class="who" id="turn-label">Your turn</div>
-        <div class="used" id="used-label">Used: 0</div>
+        <h2>Choose a topic</h2>
+        <p>10 seconds per turn · no repeats · rounds until someone slips</p>
       </div>
-      <div class="timer" id="timer">5.0</div>
+      <button class="close" id="topic-close">×</button>
     </div>
-    <div class="log" id="log"></div>
-    <div class="inputbar">
-      <input type="text" id="answer-input" placeholder="Type your answer…" autocomplete="off">
-      <button class="btn" id="submit-btn">Send</button>
+    <div class="topic-search">
+      <input type="text" id="topic-search-input" placeholder="Search topics…" autocomplete="off">
     </div>
-  </div>
-  <div class="row">
-    <button class="btn ghost" id="quit-btn">Quit game</button>
-    <button class="btn ghost" id="used-btn">Show used words</button>
+    <div class="topic-list" id="topic-list"></div>
   </div>
 </div>
 
-<div id="gameover" style="display:none;">
-  <div class="card gameover">
+<!-- COUNTDOWN -->
+<div class="overlay" id="countdown-overlay">
+  <div class="countdown-modal" id="countdown-text">3</div>
+</div>
+
+<!-- GAME OVER -->
+<div class="overlay" id="gameover-overlay">
+  <div class="over-modal">
     <h2 id="over-title">Game over</h2>
     <p id="over-reason"></p>
-    <button class="btn" id="play-again-btn">Play again</button>
+    <div class="stat" id="over-stat"></div>
+    <div class="row">
+      <button class="btn-ghost" id="back-btn">New topic</button>
+      <button class="btn-primary" id="again-btn">Play again</button>
+    </div>
   </div>
-</div>
-
 </div>
 
 <script>
-// ---------- WORD BANKS ----------
+// ═══════════════════════════════════════════
+// WORD BANKS (unchanged)
+// ═══════════════════════════════════════════
 const TOPICS = {
   "Animals 🐾": ["dog","cat","elephant","tiger","lion","bear","wolf","fox","deer","rabbit","horse","cow","sheep","goat","pig","duck","chicken","bird","eagle","owl","snake","frog","fish","shark","whale","dolphin","monkey","gorilla","panda","koala","kangaroo","giraffe","zebra","rhino","hippo","crocodile","turtle","penguin","seal","otter","squirrel","mouse","rat","bat","bee","ant","butterfly","spider","crab","octopus"],
   "Countries 🌍": ["singapore","japan","china","korea","malaysia","indonesia","thailand","vietnam","philippines","india","australia","new zealand","canada","united states","mexico","brazil","argentina","chile","peru","france","germany","italy","spain","portugal","netherlands","belgium","switzerland","austria","sweden","norway","denmark","finland","poland","russia","turkey","egypt","south africa","kenya","nigeria","morocco","saudi arabia","uae","israel","greece","ireland","iceland","cuba","jamaica"],
@@ -125,7 +374,7 @@ const TOPICS = {
   "Kitchen Items 🍳": ["pan","pot","wok","spatula","ladle","knife","fork","spoon","chopsticks","plate","bowl","cup","mug","glass","cutting board","grater","peeler","whisk","tongs","strainer","colander","kettle","toaster","oven","microwave","blender","rice cooker"],
   "Bathroom Items 🚿": ["toothbrush","toothpaste","soap","shampoo","conditioner","towel","comb","brush","mirror","razor","tissue","toilet paper","sink","bathtub","shower","faucet","drain","sponge","loofah","nail clipper"],
   "Toys & Games 🎮": ["lego","puzzle","doll","teddy bear","action figure","board game","card game","chess","checkers","dominoes","yo-yo","kite","ball","balloon","marbles","spinning top","toy car","toy train","playstation","nintendo switch","xbox","rubik's cube"],
-  "Flowers 🌸": ["rose","tulip","sunflower","daisy","lily","orchid","lavender","jasmine","lotus","hibiscus","peony","daffodil","carnation","chrysanthemum","dahlia","hydrangea","magnolia","marigold","pansy","poppy","bluebell","iris","peony"],
+  "Flowers 🌸": ["rose","tulip","sunflower","daisy","lily","orchid","lavender","jasmine","lotus","hibiscus","peony","daffodil","carnation","chrysanthemum","dahlia","hydrangea","magnolia","marigold","pansy","poppy","bluebell","iris"],
   "Trees & Plants 🌳": ["oak","pine","maple","willow","birch","palm","bamboo","baobab","redwood","cedar","fir","cypress","eucalyptus","mango tree","banana tree","coconut tree","rubber tree","olive tree","cherry blossom","bonsai"],
   "Sea Creatures 🐠": ["fish","shark","whale","dolphin","octopus","squid","crab","lobster","shrimp","prawn","jellyfish","starfish","seahorse","sea turtle","seal","walrus","manatee","stingray","eel","clam","oyster","mussel","coral","anemone"],
   "Space 🚀": ["sun","moon","star","planet","earth","mars","jupiter","saturn","venus","mercury","neptune","uranus","pluto","asteroid","comet","meteor","galaxy","milky way","black hole","supernova","nebula","cosmos","orbit","rocket","astronaut"],
@@ -137,67 +386,192 @@ const TOPICS = {
   "Fast Food 🍔": ["mcdonald's","kfc","burger king","subway","pizza hut","domino's","wendy's","taco bell","popeyes","jollibee","five guys","shake shack","long john silver's","a&w","mos burger","texas chicken","arnold's chicken"],
   "Superheroes 🦸": ["superman","batman","spider-man","iron man","captain america","thor","hulk","black widow","hawkeye","wonder woman","flash","aquaman","green lantern","black panther","doctor strange","ant-man","wolverine","deadpool","captain marvel","shazam"],
   "Video Games 🎮": ["minecraft","roblox","fortnite","among us","genshin impact","valorant","league of legends","overwatch","pubg","call of duty","fifa","mario","zelda","pokemon","animal crossing","stardew valley","terraria","hollow knight","celeste","hades"],
-  "Cartoon Characters 🎨": ["mickey mouse","donald duck","goofy","pluto","minnie mouse","bugs bunny","daffy duck","tom","jerry","scooby doo","spongebob","patrick","pikachu","hello kitty","kuromi","my melody","cinnamoroll","pochacco","donald","stitch"],
+  "Cartoon Characters 🎨": ["mickey mouse","donald duck","goofy","pluto","minnie mouse","bugs bunny","daffy duck","tom","jerry","scooby doo","spongebob","patrick","pikachu","hello kitty","kuromi","my melody","cinnamoroll","pochacco","stitch"],
   "Singapore Places 🇸🇬": ["orchard road","marina bay sands","sentosa","botanic gardens","merlion","gardens by the bay","chinatown","little india","kampong glam","clarke quay","bugis","jurong east","tampines","woodlands","yishun","punggol","sengkang","bedok","ang mo kio","toa payoh"],
   "School Subjects 📚": ["english","chinese","math","science","physics","chemistry","biology","history","geography","social studies","art","music","pe","computing","literature","economics","accounting","business","design","drama"],
   "Things in a Bedroom 🛏️": ["bed","pillow","blanket","mattress","lamp","alarm clock","mirror","wardrobe","drawer","poster","fan","aircon","window","curtain","rug","slippers","phone","charger","book","tissue"],
   "Morning Routine ☀️": ["wake up","brush teeth","wash face","shower","get dressed","eat breakfast","drink coffee","pack bag","wear shoes","comb hair","check phone","leave house","take bus","walk to school","arrive at school"]
 };
 
-// ---------- STATE ----------
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
 let topicName = "";
 let wordBank = [];
 let used = new Set();
-let currentTurn = "user";  // "user" or "ai"
+let currentTurn = "user";   // "user" | "ai"
 let timerInterval = null;
-let timeLeft = 5.0;
+let timeLeft = 10.0;
 let gameActive = false;
-const TIME_LIMIT = 5.0;
+let round = 0;
+let totalAnswers = 0;
+let countdownTimeout = null;
+const TIME_LIMIT = 10.0;
 
-// ---------- DOM ----------
-const setupEl = document.getElementById("setup");
-const gameEl = document.getElementById("game");
-const gameoverEl = document.getElementById("gameover");
-const topicListEl = document.getElementById("topic-list");
-const logEl = document.getElementById("log");
-const inputEl = document.getElementById("answer-input");
-const submitBtn = document.getElementById("submit-btn");
-const timerEl = document.getElementById("timer");
-const turnLabel = document.getElementById("turn-label");
-const usedLabel = document.getElementById("used-label");
-const overTitle = document.getElementById("over-title");
-const overReason = document.getElementById("over-reason");
+// ═══════════════════════════════════════════
+// DOM
+// ═══════════════════════════════════════════
+const chatEl         = document.getElementById("chat");
+const inputEl        = document.getElementById("answer-input");
+const submitBtn      = document.getElementById("submit-btn");
+const timerEl        = document.getElementById("timer");
+const turnLabel      = document.getElementById("turn-label");
+const roundPill      = document.getElementById("round-pill");
+const topicOverlay   = document.getElementById("topic-overlay");
+const topicListEl    = document.getElementById("topic-list");
+const topicSearchEl  = document.getElementById("topic-search-input");
+const countdownOv    = document.getElementById("countdown-overlay");
+const countdownText  = document.getElementById("countdown-text");
+const gameoverOv     = document.getElementById("gameover-overlay");
+const overTitle      = document.getElementById("over-title");
+const overReason     = document.getElementById("over-reason");
+const overStat       = document.getElementById("over-stat");
+const themeBtn       = document.getElementById("theme-btn");
 
-// ---------- SETUP UI ----------
-Object.keys(TOPICS).forEach(name => {
-  const b = document.createElement("button");
-  b.className = "btn chip";
-  b.textContent = name;
-  b.addEventListener("click", () => startGame(name));
-  topicListEl.appendChild(b);
+// ═══════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════
+function applyTheme(){
+  const stored = localStorage.getItem("concentration-theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark = stored ? stored === "dark" : prefersDark;
+  document.body.classList.toggle("dark", isDark);
+  themeBtn.textContent = isDark ? "☀" : "☾";
+}
+themeBtn.addEventListener("click", () => {
+  const isDark = !document.body.classList.contains("dark");
+  document.body.classList.toggle("dark", isDark);
+  themeBtn.textContent = isDark ? "☀" : "☾";
+  localStorage.setItem("concentration-theme", isDark ? "dark" : "light");
 });
+applyTheme();
 
-// ---------- HELPERS ----------
-function normalize(s) {
-  return s.trim().toLowerCase().replace(/\s+/g, " ");
+// ═══════════════════════════════════════════
+// TOPIC PICKER
+// ═══════════════════════════════════════════
+function renderTopicList(filter){
+  const q = (filter || "").trim().toLowerCase();
+  topicListEl.innerHTML = "";
+  Object.keys(TOPICS).forEach(name => {
+    if (q && !name.toLowerCase().includes(q)) return;
+    const btn = document.createElement("button");
+    btn.className = "topic-row";
+    btn.innerHTML = '<span>' + name + '</span><span class="count">' + TOPICS[name].length + '</span>';
+    btn.addEventListener("click", () => {
+      topicOverlay.classList.remove("open");
+      beginCountdown(name);
+    });
+    topicListEl.appendChild(btn);
+  });
+}
+topicSearchEl.addEventListener("input", e => renderTopicList(e.target.value));
+document.getElementById("topic-btn").addEventListener("click", () => {
+  renderTopicList("");
+  topicSearchEl.value = "";
+  topicOverlay.classList.add("open");
+  setTimeout(() => topicSearchEl.focus(), 80);
+});
+document.getElementById("topic-close").addEventListener("click", () => topicOverlay.classList.remove("open"));
+topicOverlay.addEventListener("click", e => { if (e.target === topicOverlay) topicOverlay.classList.remove("open"); });
+
+// ═══════════════════════════════════════════
+// COUNTDOWN → START GAME
+// ═══════════════════════════════════════════
+function beginCountdown(name){
+  topicName = name;
+  wordBank = TOPICS[name] || [];
+  used = new Set();
+  round = 0;
+  totalAnswers = 0;
+  gameActive = false;
+  chatEl.innerHTML = "";
+  countdownText.textContent = "3";
+  countdownText.style.animation = "none";
+  void countdownText.offsetWidth;
+  countdownText.style.animation = "pulseNum .9s ease";
+  countdownOv.classList.add("open");
+  inputEl.disabled = true;
+  submitBtn.disabled = true;
+  inputEl.value = "";
+  inputEl.placeholder = "Get ready…";
+  timerEl.textContent = "10.0";
+  timerEl.classList.add("idle");
+  timerEl.classList.remove("warn");
+  turnLabel.textContent = "Ready";
+  roundPill.textContent = "Round —";
+
+  let n = 3;
+  const tick = () => {
+    n--;
+    if (n > 0) {
+      countdownText.textContent = String(n);
+    } else if (n === 0) {
+      countdownText.textContent = "GO!";
+    } else {
+      countdownOv.classList.remove("open");
+      startGame();
+      return;
+    }
+    countdownText.style.animation = "none";
+    void countdownText.offsetWidth;
+    countdownText.style.animation = "pulseNum .9s ease";
+    countdownTimeout = setTimeout(tick, 800);
+  };
+  countdownTimeout = setTimeout(tick, 800);
 }
 
-function logLine(text, cls) {
-  const d = document.createElement("div");
-  d.className = "log-item " + (cls || "");
-  d.textContent = text;
-  logEl.appendChild(d);
-  logEl.scrollTop = logEl.scrollHeight;
+// ═══════════════════════════════════════════
+// CHAT LOG
+// ═══════════════════════════════════════════
+function addMsg(text, kind, meta){
+  const wrap = document.createElement("div");
+  wrap.className = "msg " + kind;
+  if (kind === "sys" && !meta) {
+    // centered system note
+    wrap.innerHTML = '<div class="bubble">' + escapeHtml(text) + '</div>';
+  } else {
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.textContent = text;
+    wrap.appendChild(b);
+    if (meta) {
+      const m = document.createElement("div");
+      m.className = "meta";
+      m.textContent = meta;
+      wrap.appendChild(m);
+    }
+  }
+  chatEl.appendChild(wrap);
+  chatEl.scrollTop = chatEl.scrollHeight;
 }
 
-function updateUsed() {
-  usedLabel.textContent = "Used: " + used.size;
+function addBadge(text){
+  const wrap = document.createElement("div");
+  wrap.className = "msg sys bad";
+  wrap.innerHTML = '<div class="bubble">❌ ' + escapeHtml(text) + '</div>';
+  chatEl.appendChild(wrap);
+  chatEl.scrollTop = chatEl.scrollHeight;
 }
 
-function startTimer() {
+function addRoundSep(n){
+  const sep = document.createElement("div");
+  sep.className = "round-sep";
+  sep.textContent = "Round " + n;
+  chatEl.appendChild(sep);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// ═══════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════
+function startTimer(){
   clearInterval(timerInterval);
   timeLeft = TIME_LIMIT;
-  timerEl.classList.remove("warn");
+  timerEl.classList.remove("warn","idle");
   timerEl.textContent = timeLeft.toFixed(1);
   timerInterval = setInterval(() => {
     timeLeft -= 0.1;
@@ -206,103 +580,91 @@ function startTimer() {
       timeLeft = 0;
       timerEl.textContent = "0.0";
       timerEl.classList.add("warn");
-      if (currentTurn === "user") endGame("You", "hesitation — 5 seconds ran out.");
+      if (currentTurn === "user") endGame("You", "hesitation — 10 seconds ran out.");
       else endGame("AI", "hesitation.");
     } else {
       timerEl.textContent = timeLeft.toFixed(1);
-      if (timeLeft <= 2) timerEl.classList.add("warn");
+      if (timeLeft <= 3) timerEl.classList.add("warn");
     }
   }, 100);
 }
+function stopTimer(){ clearInterval(timerInterval); }
 
-function stopTimer() {
-  clearInterval(timerInterval);
-}
-
-function endGame(loser, reason) {
-  if (!gameActive) return;
-  gameActive = false;
-  stopTimer();
-  inputEl.disabled = true;
-  submitBtn.disabled = true;
-  let winner = loser === "You" ? "AI" : "You";
-  overTitle.textContent = winner + " win!";
-  overReason.textContent = loser + " lost: " + reason;
-  gameEl.style.display = "none";
-  gameoverEl.style.display = "block";
-}
-
-// ---------- GAME FLOW ----------
-function startGame(name) {
-  topicName = name;
-  wordBank = TOPICS[name] || [];
-  used = new Set();
+// ═══════════════════════════════════════════
+// GAME FLOW
+// ═══════════════════════════════════════════
+function startGame(){
   currentTurn = "user";
   gameActive = true;
-  logEl.innerHTML = "";
-  gameoverEl.style.display = "none";
-  setupEl.style.display = "none";
-  gameEl.style.display = "block";
+  round = 1;
+  totalAnswers = 0;
+  roundPill.textContent = "Round 1";
+
+  addMsg("Topic: " + topicName, "sys");
+  addMsg("You go first. 10 seconds per turn. No repeats.", "sys");
+  addRoundSep(1);
+
+  turnLabel.textContent = "Your turn";
   inputEl.disabled = false;
   submitBtn.disabled = false;
-  inputEl.value = "";
+  inputEl.placeholder = "Type your answer…";
   inputEl.focus();
-
-  logLine("Topic: " + name + ". You go first. 5 seconds per turn.", "sys");
-  turnLabel.textContent = "Your turn";
-  updateUsed();
   startTimer();
 }
 
-function handleUserAnswer() {
+function normalize(s){ return s.trim().toLowerCase().replace(/\s+/g, " "); }
+
+function handleUserAnswer(){
   if (!gameActive || currentTurn !== "user") return;
   const raw = inputEl.value;
   const ans = normalize(raw);
   if (!ans) return;
 
   stopTimer();
-  logLine("You: " + raw.trim(), "user");
   inputEl.value = "";
 
-  // check repeat
   if (used.has(ans)) {
-    logLine("❌ '" + raw.trim() + "' was already used.", "bad");
+    addMsg(raw.trim(), "user", "You");
+    addBadge("'" + raw.trim() + "' was already used.");
     endGame("You", "repeated answer.");
     return;
   }
-
-  // check topic
   if (!wordBank.includes(ans)) {
-    logLine("❌ '" + raw.trim() + "' does not fit the topic.", "bad");
+    addMsg(raw.trim(), "user", "You");
+    addBadge("'" + raw.trim() + "' does not fit the topic.");
     endGame("You", "answer outside topic.");
     return;
   }
 
   used.add(ans);
-  updateUsed();
+  totalAnswers++;
+  addMsg(raw.trim(), "user", "You");
 
-  // AI turn
   currentTurn = "ai";
-  turnLabel.textContent = "AI's turn";
+  turnLabel.textContent = "AI thinking…";
+  inputEl.disabled = true;
+  submitBtn.disabled = true;
   setTimeout(aiTurn, 600);
 }
 
-function aiTurn() {
+function aiTurn(){
   if (!gameActive) return;
-  // filter unused
   const remaining = wordBank.filter(w => !used.has(w));
   if (remaining.length === 0) {
-    // No more words — AI loses
-    logLine("AI has no more answers.", "sys");
+    addMsg("AI has no more answers.", "sys");
     endGame("AI", "no more valid answers.");
     return;
   }
   const pick = remaining[Math.floor(Math.random() * remaining.length)];
   used.add(pick);
-  updateUsed();
-  logLine("AI: " + pick, "ai");
+  totalAnswers++;
+  addMsg(pick, "ai", "AI");
 
-  // Back to user
+  // New round
+  round++;
+  roundPill.textContent = "Round " + round;
+  addRoundSep(round);
+
   currentTurn = "user";
   turnLabel.textContent = "Your turn";
   inputEl.disabled = false;
@@ -311,7 +673,25 @@ function aiTurn() {
   startTimer();
 }
 
-// ---------- EVENTS ----------
+function endGame(loser, reason){
+  if (!gameActive) return;
+  gameActive = false;
+  stopTimer();
+  inputEl.disabled = true;
+  submitBtn.disabled = true;
+
+  const winner = loser === "You" ? "AI" : "You";
+  overTitle.textContent = winner + " win!";
+  overReason.textContent = loser + " lost: " + reason;
+  overStat.innerHTML = "Rounds: <b>" + round + "</b> · Words used: <b>" + used.size + "</b>";
+  gameoverOv.classList.add("open");
+
+  addMsg(winner + " win — " + loser + " lost: " + reason, "sys");
+}
+
+// ═══════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════
 submitBtn.addEventListener("click", handleUserAnswer);
 inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); handleUserAnswer(); }
@@ -319,16 +699,32 @@ inputEl.addEventListener("keydown", e => {
 
 document.getElementById("quit-btn").addEventListener("click", () => {
   if (gameActive) endGame("You", "you quit.");
+  else { gameoverOv.classList.remove("open"); topicOverlay.classList.add("open"); renderTopicList(""); }
 });
 
 document.getElementById("used-btn").addEventListener("click", () => {
-  logLine("Used words: " + Array.from(used).join(", "), "sys");
+  if (used.size === 0) { addMsg("No words used yet.", "sys"); return; }
+  addMsg("Used so far: " + Array.from(used).join(", "), "sys");
 });
 
-document.getElementById("play-again-btn").addEventListener("click", () => {
-  gameoverEl.style.display = "none";
-  setupEl.style.display = "block";
+document.getElementById("again-btn").addEventListener("click", () => {
+  gameoverOv.classList.remove("open");
+  if (topicName) beginCountdown(topicName);
 });
+
+document.getElementById("back-btn").addEventListener("click", () => {
+  gameoverOv.classList.remove("open");
+  renderTopicList("");
+  topicSearchEl.value = "";
+  topicOverlay.classList.add("open");
+});
+
+// ═══════════════════════════════════════════
+// INIT — show topic picker on load
+// ═══════════════════════════════════════════
+renderTopicList("");
+topicOverlay.classList.add("open");
+setTimeout(() => topicSearchEl.focus(), 200);
 </script>
 </body>
 </html>
