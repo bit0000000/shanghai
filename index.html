@@ -23,13 +23,17 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 .backdrop.show{opacity:1;pointer-events:auto}
 .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .28s ease;width:var(--sidebar-width);max-width:85vw;background:var(--sidebar);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
 .sidebar.open{transform:translateX(0)}
-.sidebar-header{padding:20px 20px 8px}
+.sidebar-header{padding:20px 20px 6px}
 .sidebar-header h1{font-size:1.2rem;font-weight:600;letter-spacing:-.01em;color:var(--accent);margin-bottom:2px}
 .sidebar-header p{font-size:.7rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
-.sidebar-search{padding:8px 16px 12px}
+.icon-row{display:flex;gap:6px;padding:10px 20px 4px}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--accent);transition:.12s;display:flex;align-items:center;gap:4px}
+.icon-btn:hover{background:var(--accent-soft);border-color:var(--accent)}
+.icon-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sidebar-search{padding:10px 16px 8px}
 .search-input{width:100%;padding:9px 16px;border:1px solid var(--line);border-radius:24px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--text)}
 .search-input:focus{outline:none;border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px var(--accent-soft)}
-.sidebar-actions{padding:0 16px 10px;display:flex;flex-direction:column;gap:2px}
+.sidebar-actions{padding:4px 16px 10px;display:flex;flex-direction:column;gap:2px}
 .new-note-btn{width:100%;padding:10px 16px;border:none;border-radius:24px;background:var(--accent);color:#fff;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:.12s;box-shadow:0 2px 6px rgba(30,58,138,.2)}
 .new-note-btn:hover{background:var(--accent-hover)}
 .export-btn{width:100%;padding:9px 16px;border:none;border-radius:24px;background:none;color:var(--muted);font-size:.8rem;font-weight:500;cursor:pointer;font-family:inherit;text-align:left;transition:.12s}
@@ -165,6 +169,11 @@ html,body{height:100%;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,
 <div class="sidebar-header">
 <h1>月亮 · Yueliang</h1>
 <p>NOV 2026</p>
+</div>
+<div class="icon-row">
+<button class="icon-btn" id="lang-btn" title="语言">中</button>
+<button class="icon-btn" id="readonly-btn" title="只读">👁</button>
+<button class="icon-btn" id="theme-btn" title="夜间模式">☾</button>
 </div>
 <div class="sidebar-search"><input type="text" class="search-input" id="search-input" placeholder="搜索…"></div>
 <div class="sidebar-actions">
@@ -511,6 +520,24 @@ menuBtn.addEventListener("click", () => {
   if (sideEl.classList.contains("open")) closeSidebar(); else openSidebar();
 });
 backdrop.addEventListener("click", closeSidebar);
+
+const themeBtn = document.getElementById("theme-btn");
+if (localStorage.getItem("yueliang-dark") === "true") { document.body.classList.add("dark"); themeBtn.textContent = "☀"; }
+themeBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  const isDark = document.body.classList.contains("dark");
+  themeBtn.textContent = isDark ? "☀" : "☾";
+  localStorage.setItem("yueliang-dark", isDark);
+});
+
+const readonlyBtn = document.getElementById("readonly-btn");
+if (localStorage.getItem("yueliang-readonly") === "true") { document.body.classList.add("read-only"); readonlyBtn.classList.add("active"); }
+readonlyBtn.addEventListener("click", () => {
+  document.body.classList.toggle("read-only");
+  const isRO = document.body.classList.contains("read-only");
+  readonlyBtn.classList.toggle("active", isRO);
+  localStorage.setItem("yueliang-readonly", isRO);
+});
 
 document.getElementById("new-note-btn").addEventListener("click", () => {
   if (searchTerm) { searchTerm = ""; document.getElementById("search-input").value = ""; }
