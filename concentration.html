@@ -38,7 +38,6 @@ body{
   display:flex;justify-content:center;align-items:stretch;
   overflow:hidden;
 }
-
 .app{
   width:100%;max-width:720px;height:100vh;height:100dvh;
   display:flex;flex-direction:column;
@@ -50,8 +49,6 @@ body{
   .app{height:calc(100dvh - 32px);margin:16px 0;border-radius:20px;box-shadow:0 12px 40px rgba(15,30,61,.12);overflow:hidden}
   body.dark .app{box-shadow:0 12px 40px rgba(0,0,0,.5)}
 }
-
-/* ───── Header ───── */
 .header{
   display:flex;align-items:center;gap:10px;
   padding:12px 16px;background:var(--header-bg);
@@ -75,8 +72,6 @@ body{
   color:var(--accent);font-size:1rem;cursor:pointer;transition:.15s;font-family:inherit;
 }
 .icon-btn:hover{background:var(--accent-soft);border-color:var(--accent)}
-
-/* ───── Big timer ───── */
 .timer-bar{
   display:flex;align-items:center;justify-content:center;gap:14px;
   padding:16px 16px 12px;background:var(--header-bg);
@@ -96,8 +91,6 @@ body{
   font-size:.78rem;font-weight:700;color:var(--muted);
   letter-spacing:.08em;text-transform:uppercase;
 }
-
-/* ───── Chat area ───── */
 .chat{
   flex:1;overflow-y:auto;
   padding:20px 16px 8px;
@@ -107,41 +100,32 @@ body{
 }
 .chat::-webkit-scrollbar{width:6px}
 .chat::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
-
 .msg{max-width:80%;display:flex;flex-direction:column;gap:3px;animation:pop .18s ease}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
 .msg .bubble{
   padding:10px 14px;border-radius:18px;
   font-size:.92rem;line-height:1.5;
   word-break:break-word;
 }
 .msg .meta{font-size:.65rem;color:var(--muted);letter-spacing:.05em;padding:0 6px;font-weight:500}
-
 .msg.user{align-self:flex-end;align-items:flex-end}
 .msg.user .bubble{background:var(--bubble-user);color:var(--bubble-user-text);border-bottom-right-radius:6px}
-
 .msg.ai{align-self:flex-start;align-items:flex-start}
 .msg.ai .bubble{background:var(--bubble-ai);color:var(--bubble-ai-text);border-bottom-left-radius:6px}
-
 .msg.sys{align-self:center;align-items:center;max-width:90%}
 .msg.sys .bubble{
   background:var(--bubble-sys-bg);color:var(--bubble-sys-text);
   font-size:.78rem;font-style:italic;padding:6px 14px;border-radius:14px;
   text-align:center;
 }
-
 .msg.bad .bubble{background:var(--danger-soft);color:var(--danger);font-weight:600}
 .msg.good .bubble{background:var(--success-soft);color:var(--success);font-weight:600}
-
 .round-sep{
   align-self:stretch;display:flex;align-items:center;gap:10px;
   color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.1em;
   text-transform:uppercase;margin:10px 0 4px;
 }
 .round-sep::before,.round-sep::after{content:"";flex:1;height:1px;background:var(--line)}
-
-/* ───── Input bar ───── */
 .input-bar{
   display:flex;gap:8px;padding:12px 16px 16px;
   background:var(--header-bg);border-top:1px solid var(--line);
@@ -162,8 +146,6 @@ body{
 }
 .send-btn:hover{background:var(--accent-hover)}
 .send-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* ───── Floating actions ───── */
 .actions{
   display:flex;gap:6px;padding:0 16px 12px;background:var(--header-bg);
   flex-shrink:0;flex-wrap:wrap;
@@ -174,8 +156,6 @@ body{
   cursor:pointer;font-family:inherit;transition:.15s;letter-spacing:.03em;
 }
 .actions button:hover{border-color:var(--accent);color:var(--accent)}
-
-/* ───── Overlays ───── */
 .overlay{
   position:fixed;inset:0;background:rgba(10,18,38,.55);
   display:none;align-items:center;justify-content:center;
@@ -184,8 +164,6 @@ body{
 }
 .overlay.open{display:flex}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-/* Topic picker */
 .topic-modal{
   width:100%;max-width:560px;max-height:85vh;
   background:var(--chat-bg);border-radius:20px;
@@ -226,8 +204,6 @@ body{
   font-family:'Roboto Mono',monospace;font-weight:600;
 }
 .topic-row:hover .count{color:var(--accent)}
-
-/* Countdown */
 .countdown-modal{
   text-align:center;color:#fff;
   font-family:'Roboto Mono',monospace;font-weight:600;
@@ -240,8 +216,6 @@ body{
   40%{transform:scale(1.05);opacity:1}
   100%{transform:scale(1);opacity:1}
 }
-
-/* Game over */
 .over-modal{
   background:var(--chat-bg);border-radius:20px;
   padding:32px 28px;max-width:400px;width:100%;
@@ -264,7 +238,6 @@ body{
 .btn-primary:hover{background:var(--accent-hover)}
 .btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--line)}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-
 @media (max-width:520px){
   .timer{font-size:2.6rem;min-width:100px}
   .msg{max-width:88%}
@@ -274,7 +247,6 @@ body{
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <div class="title">Concentration<small>专注力</small></div>
     <div class="spacer"></div>
@@ -282,16 +254,13 @@ body{
     <button class="icon-btn" id="theme-btn" title="Day / Night">☾</button>
   </div>
 
-  <!-- TIMER -->
   <div class="timer-bar">
     <div class="timer idle" id="timer">10.0</div>
     <div class="turn-label" id="turn-label">Ready</div>
   </div>
 
-  <!-- CHAT -->
   <div class="chat" id="chat"></div>
 
-  <!-- INPUT -->
   <div class="input-bar">
     <input type="text" id="answer-input" placeholder="Choose a topic to begin…" autocomplete="off" disabled>
     <button class="send-btn" id="submit-btn" disabled>Send</button>
@@ -303,7 +272,6 @@ body{
   </div>
 </div>
 
-<!-- TOPIC PICKER -->
 <div class="overlay" id="topic-overlay">
   <div class="topic-modal">
     <div class="topic-head">
@@ -320,12 +288,10 @@ body{
   </div>
 </div>
 
-<!-- COUNTDOWN -->
 <div class="overlay" id="countdown-overlay">
   <div class="countdown-modal" id="countdown-text">3</div>
 </div>
 
-<!-- GAME OVER -->
 <div class="overlay" id="gameover-overlay">
   <div class="over-modal">
     <h2 id="over-title">Game over</h2>
@@ -339,9 +305,6 @@ body{
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-// WORD BANKS (unchanged)
-// ═══════════════════════════════════════════
 const TOPICS = {
   "Animals 🐾": ["dog","cat","elephant","tiger","lion","bear","wolf","fox","deer","rabbit","horse","cow","sheep","goat","pig","duck","chicken","bird","eagle","owl","snake","frog","fish","shark","whale","dolphin","monkey","gorilla","panda","koala","kangaroo","giraffe","zebra","rhino","hippo","crocodile","turtle","penguin","seal","otter","squirrel","mouse","rat","bat","bee","ant","butterfly","spider","crab","octopus"],
   "Countries 🌍": ["singapore","japan","china","korea","malaysia","indonesia","thailand","vietnam","philippines","india","australia","new zealand","canada","united states","mexico","brazil","argentina","chile","peru","france","germany","italy","spain","portugal","netherlands","belgium","switzerland","austria","sweden","norway","denmark","finland","poland","russia","turkey","egypt","south africa","kenya","nigeria","morocco","saudi arabia","uae","israel","greece","ireland","iceland","cuba","jamaica"],
@@ -393,13 +356,10 @@ const TOPICS = {
   "Morning Routine ☀️": ["wake up","brush teeth","wash face","shower","get dressed","eat breakfast","drink coffee","pack bag","wear shoes","comb hair","check phone","leave house","take bus","walk to school","arrive at school"]
 };
 
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
 let topicName = "";
 let wordBank = [];
 let used = new Set();
-let currentTurn = "user";   // "user" | "ai"
+let currentTurn = "user";
 let timerInterval = null;
 let timeLeft = 10.0;
 let gameActive = false;
@@ -408,9 +368,6 @@ let totalAnswers = 0;
 let countdownTimeout = null;
 const TIME_LIMIT = 10.0;
 
-// ═══════════════════════════════════════════
-// DOM
-// ═══════════════════════════════════════════
 const chatEl         = document.getElementById("chat");
 const inputEl        = document.getElementById("answer-input");
 const submitBtn      = document.getElementById("submit-btn");
@@ -428,9 +385,6 @@ const overReason     = document.getElementById("over-reason");
 const overStat       = document.getElementById("over-stat");
 const themeBtn       = document.getElementById("theme-btn");
 
-// ═══════════════════════════════════════════
-// THEME
-// ═══════════════════════════════════════════
 function applyTheme(){
   const stored = localStorage.getItem("concentration-theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -446,9 +400,6 @@ themeBtn.addEventListener("click", () => {
 });
 applyTheme();
 
-// ═══════════════════════════════════════════
-// TOPIC PICKER
-// ═══════════════════════════════════════════
 function renderTopicList(filter){
   const q = (filter || "").trim().toLowerCase();
   topicListEl.innerHTML = "";
@@ -474,9 +425,6 @@ document.getElementById("topic-btn").addEventListener("click", () => {
 document.getElementById("topic-close").addEventListener("click", () => topicOverlay.classList.remove("open"));
 topicOverlay.addEventListener("click", e => { if (e.target === topicOverlay) topicOverlay.classList.remove("open"); });
 
-// ═══════════════════════════════════════════
-// COUNTDOWN → START GAME
-// ═══════════════════════════════════════════
 function beginCountdown(name){
   topicName = name;
   wordBank = TOPICS[name] || [];
@@ -520,14 +468,10 @@ function beginCountdown(name){
   countdownTimeout = setTimeout(tick, 800);
 }
 
-// ═══════════════════════════════════════════
-// CHAT LOG
-// ═══════════════════════════════════════════
 function addMsg(text, kind, meta){
   const wrap = document.createElement("div");
   wrap.className = "msg " + kind;
   if (kind === "sys" && !meta) {
-    // centered system note
     wrap.innerHTML = '<div class="bubble">' + escapeHtml(text) + '</div>';
   } else {
     const b = document.createElement("div");
@@ -565,9 +509,6 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
-// ═══════════════════════════════════════════
-// TIMER
-// ═══════════════════════════════════════════
 function startTimer(){
   clearInterval(timerInterval);
   timeLeft = TIME_LIMIT;
@@ -590,9 +531,6 @@ function startTimer(){
 }
 function stopTimer(){ clearInterval(timerInterval); }
 
-// ═══════════════════════════════════════════
-// GAME FLOW
-// ═══════════════════════════════════════════
 function startGame(){
   currentTurn = "user";
   gameActive = true;
@@ -660,7 +598,6 @@ function aiTurn(){
   totalAnswers++;
   addMsg(pick, "ai", "AI");
 
-  // New round
   round++;
   roundPill.textContent = "Round " + round;
   addRoundSep(round);
@@ -689,9 +626,6 @@ function endGame(loser, reason){
   addMsg(winner + " win — " + loser + " lost: " + reason, "sys");
 }
 
-// ═══════════════════════════════════════════
-// EVENTS
-// ═══════════════════════════════════════════
 submitBtn.addEventListener("click", handleUserAnswer);
 inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); handleUserAnswer(); }
@@ -719,9 +653,6 @@ document.getElementById("back-btn").addEventListener("click", () => {
   topicOverlay.classList.add("open");
 });
 
-// ═══════════════════════════════════════════
-// INIT — show topic picker on load
-// ═══════════════════════════════════════════
 renderTopicList("");
 topicOverlay.classList.add("open");
 setTimeout(() => topicSearchEl.focus(), 200);
