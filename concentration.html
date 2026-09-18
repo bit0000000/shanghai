@@ -211,6 +211,7 @@ body{
 <body>
 <div class="app">
 
+  <!-- 顶栏 -->
   <div class="header">
     <div class="title">Concentration<small>专注力</small></div>
     <div class="spacer"></div>
@@ -218,13 +219,16 @@ body{
     <button class="icon-btn" id="theme-btn" title="Day / Night">☾</button>
   </div>
 
+  <!-- 计时器 -->
   <div class="timer-bar">
     <div class="timer idle" id="timer">10.0</div>
     <div class="turn-label" id="turn-label">Ready</div>
   </div>
 
+  <!-- 聊天区 -->
   <div class="chat" id="chat"></div>
 
+  <!-- 输入区 -->
   <div class="input-bar">
     <input type="text" id="answer-input" placeholder="Choose a topic to begin…" autocomplete="off" disabled>
     <button class="send-btn" id="submit-btn" disabled>Send</button>
@@ -236,6 +240,7 @@ body{
   </div>
 </div>
 
+<!-- 主题选择 -->
 <div class="overlay" id="topic-overlay">
   <div class="topic-modal">
     <div class="topic-head">
@@ -252,10 +257,12 @@ body{
   </div>
 </div>
 
+<!-- 倒数 -->
 <div class="overlay" id="countdown-overlay">
   <div class="countdown-modal" id="countdown-text">3</div>
 </div>
 
+<!-- 游戏结束 -->
 <div class="overlay" id="gameover-overlay">
   <div class="over-modal">
     <h2 id="over-title">Game over</h2>
@@ -268,6 +275,7 @@ body{
   </div>
 </div>
 
+<!-- 申诉 -->
 <div class="overlay" id="appeal-overlay">
   <div class="appeal-modal">
     <h3>申诉</h3>
@@ -283,56 +291,61 @@ body{
   </div>
 </div>
 
-<!-- 词库 -->
+<!-- 词库（必须先在前面加载） -->
 <script src="vocab.js"></script>
 
-<!-- 游戏逻辑 -->
 <script>
+/* ═══════════════════════════════════════════
+   状态
+   ═══════════════════════════════════════════ */
 let topicName = "";
 let wordBank = [];
 let used = new Set();
-let currentTurn = "user";
+let currentTurn = "user";       // "user" | "ai"
 let timerInterval = null;
 let timeLeft = 10.0;
 let gameActive = false;
 let round = 0;
 let totalAnswers = 0;
 let countdownTimeout = null;
+let appealPending = null;
 const TIME_LIMIT = 10.0;
 
-// 用户个人词库
+// 用户个人词库（申诉通过的词会永久保存）
 const USER_VOCAB_KEY = "concentration-user-vocab";
 let userVocab = new Set(JSON.parse(localStorage.getItem(USER_VOCAB_KEY) || "[]"));
 function saveUserVocab() {
   localStorage.setItem(USER_VOCAB_KEY, JSON.stringify(Array.from(userVocab)));
 }
 
-let appealPending = null;
+/* ═══════════════════════════════════════════
+   DOM
+   ═══════════════════════════════════════════ */
+const chatEl        = document.getElementById("chat");
+const inputEl       = document.getElementById("answer-input");
+const submitBtn     = document.getElementById("submit-btn");
+const timerEl       = document.getElementById("timer");
+const turnLabel     = document.getElementById("turn-label");
+const roundPill     = document.getElementById("round-pill");
+const topicOverlay  = document.getElementById("topic-overlay");
+const topicListEl   = document.getElementById("topic-list");
+const topicSearchEl = document.getElementById("topic-search-input");
+const countdownOv   = document.getElementById("countdown-overlay");
+const countdownText = document.getElementById("countdown-text");
+const gameoverOv    = document.getElementById("gameover-overlay");
+const overTitle     = document.getElementById("over-title");
+const overReason    = document.getElementById("over-reason");
+const overStat      = document.getElementById("over-stat");
+const themeBtn      = document.getElementById("theme-btn");
+const appealOv      = document.getElementById("appeal-overlay");
+const appealWordEl  = document.getElementById("appeal-word");
+const appealInput   = document.getElementById("appeal-input");
+const appealHint    = document.getElementById("appeal-hint");
 
-// DOM
-const chatEl         = document.getElementById("chat");
-const inputEl        = document.getElementById("answer-input");
-const submitBtn      = document.getElementById("submit-btn");
-const timerEl        = document.getElementById("timer");
-const turnLabel      = document.getElementById("turn-label");
-const roundPill      = document.getElementById("round-pill");
-const topicOverlay   = document.getElementById("topic-overlay");
-const topicListEl    = document.getElementById("topic-list");
-const topicSearchEl  = document.getElementById("topic-search-input");
-const countdownOv    = document.getElementById("countdown-overlay");
-const countdownText  = document.getElementById("countdown-text");
-const gameoverOv     = document.getElementById("gameover-overlay");
-const overTitle      = document.getElementById("over-title");
-const overReason     = document.getElementById("over-reason");
-const overStat       = document.getElementById("over-stat");
-const themeBtn       = document.getElementById("theme-btn");
-const appealOv       = document.getElementById("appeal-overlay");
-const appealWordEl   = document.getElementById("appeal-word");
-const appealInput    = document.getElementById("appeal-input");
-const appealHint     = document.getElementById("appeal-hint");
-
-// Theme
-function applyTheme(){
+/* ═══════════════════════════════════════════
+   主题切换（深浅）
+   ═══════════════════════════════════════════ */
+function applyTheme() {
   const stored = localStorage.getItem("concentration-theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const isDark = stored ? stored === "dark" : prefersDark;
@@ -347,8 +360,10 @@ themeBtn.addEventListener("click", () => {
 });
 applyTheme();
 
-// Topic picker
-function renderTopicList(filter){
+/* ═══════════════════════════════════════════
+   主题选择
+   ═══════════════════════════════════════════ */
+function renderTopicList(filter) {
   const q = (filter || "").trim().toLowerCase();
   topicListEl.innerHTML = "";
   Object.keys(TOPICS).forEach(name => {
@@ -373,8 +388,10 @@ document.getElementById("topic-btn").addEventListener("click", () => {
 document.getElementById("topic-close").addEventListener("click", () => topicOverlay.classList.remove("open"));
 topicOverlay.addEventListener("click", e => { if (e.target === topicOverlay) topicOverlay.classList.remove("open"); });
 
-// Countdown
-function beginCountdown(name){
+/* ═══════════════════════════════════════════
+   开始倒数 → 开始游戏
+   ═══════════════════════════════════════════ */
+function beginCountdown(name) {
   topicName = name;
   wordBank = TOPICS[name] || [];
   used = new Set();
@@ -382,11 +399,13 @@ function beginCountdown(name){
   totalAnswers = 0;
   gameActive = false;
   chatEl.innerHTML = "";
+
   countdownText.textContent = "3";
   countdownText.style.animation = "none";
   void countdownText.offsetWidth;
   countdownText.style.animation = "pulseNum .9s ease";
   countdownOv.classList.add("open");
+
   inputEl.disabled = true;
   submitBtn.disabled = true;
   inputEl.value = "";
@@ -417,8 +436,14 @@ function beginCountdown(name){
   countdownTimeout = setTimeout(tick, 800);
 }
 
-// Chat helpers
-function addMsg(text, kind, meta){
+/* ═══════════════════════════════════════════
+   聊天区渲染
+   ═══════════════════════════════════════════ */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+function addMsg(text, kind, meta) {
   const wrap = document.createElement("div");
   wrap.className = "msg " + kind;
   if (kind === "sys" && !meta) {
@@ -438,36 +463,38 @@ function addMsg(text, kind, meta){
   chatEl.appendChild(wrap);
   chatEl.scrollTop = chatEl.scrollHeight;
 }
-function addBadge(text){
+
+function addBadge(text) {
   const wrap = document.createElement("div");
   wrap.className = "msg sys bad";
   wrap.innerHTML = '<div class="bubble">❌ ' + escapeHtml(text) + '</div>';
   chatEl.appendChild(wrap);
   chatEl.scrollTop = chatEl.scrollHeight;
 }
-function addGood(text){
+
+function addGood(text) {
   const wrap = document.createElement("div");
   wrap.className = "msg sys good";
   wrap.innerHTML = '<div class="bubble">' + escapeHtml(text) + '</div>';
   chatEl.appendChild(wrap);
   chatEl.scrollTop = chatEl.scrollHeight;
 }
-function addRoundSep(n){
+
+function addRoundSep(n) {
   const sep = document.createElement("div");
   sep.className = "round-sep";
   sep.textContent = "Round " + n;
   chatEl.appendChild(sep);
   chatEl.scrollTop = chatEl.scrollHeight;
 }
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
 
-// Timer
-function startTimer(){
+/* ═══════════════════════════════════════════
+   计时器
+   ═══════════════════════════════════════════ */
+function startTimer() {
   clearInterval(timerInterval);
   timeLeft = TIME_LIMIT;
-  timerEl.classList.remove("warn","idle");
+  timerEl.classList.remove("warn", "idle");
   timerEl.textContent = timeLeft.toFixed(1);
   timerInterval = setInterval(() => {
     timeLeft -= 0.1;
@@ -476,52 +503,75 @@ function startTimer(){
       timeLeft = 0;
       timerEl.textContent = "0.0";
       timerEl.classList.add("warn");
-      if (currentTurn === "user") endGame("You", "hesitation — 10 seconds ran out.");
-      else endGame("AI", "hesitation.");
+      if (currentTurn === "user") endGame("You", "超时 —— 10 秒用完了。");
+      else endGame("AI", "超时。");
     } else {
       timerEl.textContent = timeLeft.toFixed(1);
       if (timeLeft <= 3) timerEl.classList.add("warn");
     }
   }, 100);
 }
-function stopTimer(){ clearInterval(timerInterval); }
+function stopTimer() {
+  clearInterval(timerInterval);
+}
 
-// Game flow
-function startGame(){
+/* ═══════════════════════════════════════════
+   游戏开始
+   ═══════════════════════════════════════════ */
+function startGame() {
   currentTurn = "user";
   gameActive = true;
   round = 1;
   totalAnswers = 0;
   roundPill.textContent = "Round 1";
-  addMsg("Topic: " + topicName, "sys");
-  addMsg("You go first. 10 seconds per turn. No repeats.", "sys");
+
+  addMsg("主题：" + topicName, "sys");
+  addMsg("你先来。每轮 10 秒。不可重复。", "sys");
   addRoundSep(1);
+
   turnLabel.textContent = "Your turn";
   inputEl.disabled = false;
   submitBtn.disabled = false;
-  inputEl.placeholder = "Type your answer…";
+  inputEl.placeholder = "输入你的答案…";
   inputEl.focus();
   startTimer();
 }
 
-function normalize(s){ return s.trim().toLowerCase().replace(/\s+/g, " "); }
+/* ═══════════════════════════════════════════
+   规范化 + 验证
+   ═══════════════════════════════════════════ */
 
+// 判断是不是中文主题（华文词语）
 function isChineseWordTopic() {
   return topicName.includes("华文");
 }
 
-function validateAnswer(raw) {
+// 规范化：中文去掉空格，其他转小写
+function normalizeAnswer(raw) {
   if (isChineseWordTopic()) {
-    const stripped = raw.trim().replace(/\s+/g, "");
-    const isAllHanzi = /^[\u4e00-\u9fff]+$/.test(stripped);
-    if (!isAllHanzi) return { ok: false, reason: "'" + raw.trim() + "' 必须是汉字。" };
-    if (stripped.length !== 2) return { ok: false, reason: "'" + raw.trim() + "' 必须是两个字。" };
-    return { ok: true, normalized: stripped };
+    return raw.trim().replace(/\s+/g, "");
   }
-  return { ok: true, normalized: normalize(raw) };
+  return raw.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function handleUserAnswer(){
+// 格式验证 —— 只对中文主题有硬性要求
+function validateFormat(raw) {
+  if (!isChineseWordTopic()) return { ok: true };
+  const stripped = raw.trim().replace(/\s+/g, "");
+  if (!/^[\u4e00-\u9fff]+$/.test(stripped)) {
+    return { ok: false, reason: "'" + raw.trim() + "' 必须是汉字。" };
+  }
+  if (stripped.length !== 2) {
+    return { ok: false, reason: "'" + raw.trim() + "' 必须是两个字。" };
+  }
+  return { ok: true };
+}
+
+/* ═══════════════════════════════════════════
+   用户提交答案 —— 主逻辑
+   顺序：重复 → 格式 → 词库 → 通过
+   ═══════════════════════════════════════════ */
+function handleUserAnswer() {
   if (!gameActive || currentTurn !== "user") return;
   const raw = inputEl.value;
   if (!raw || !raw.trim()) return;
@@ -529,26 +579,26 @@ function handleUserAnswer(){
   stopTimer();
   inputEl.value = "";
 
-  const validation = validateAnswer(raw);
-  const ans = validation.normalized || normalize(raw);
+  const ans = normalizeAnswer(raw);
 
-  // 重复
+  // ── 1. 重复 ──
   if (used.has(ans)) {
     addMsg(raw.trim(), "user", "You");
     addBadge("'" + raw.trim() + "' 已经说过了。");
-    endGame("You", "repeated answer.");
+    endGame("You", "重复了同一个词。");
     return;
   }
 
-  // 中文格式错
-  if (isChineseWordTopic() && !validation.ok) {
+  // ── 2. 格式 ──
+  const fmt = validateFormat(raw);
+  if (!fmt.ok) {
     addMsg(raw.trim(), "user", "You");
-    addBadge(validation.reason);
+    addBadge(fmt.reason);
     offerAppeal(raw.trim(), ans);
     return;
   }
 
-  // 不在词库
+  // ── 3. 词库 ──
   const inBank = wordBank.includes(ans);
   const inUserVocab = userVocab.has(ans);
   if (!inBank && !inUserVocab) {
@@ -558,7 +608,7 @@ function handleUserAnswer(){
     return;
   }
 
-  // 通过
+  // ── 4. 通过 ──
   used.add(ans);
   totalAnswers++;
   addMsg(raw.trim(), "user", "You");
@@ -570,7 +620,9 @@ function handleUserAnswer(){
   setTimeout(aiTurn, 600);
 }
 
-// Appeal
+/* ═══════════════════════════════════════════
+   申诉
+   ═══════════════════════════════════════════ */
 function offerAppeal(displayWord, normalized) {
   appealPending = { display: displayWord, normalized };
 
@@ -617,13 +669,19 @@ function submitAppeal() {
     appealHint.style.color = "var(--danger)";
     return;
   }
+
+  // 加进个人词库，永久保存
   userVocab.add(appealPending.normalized);
   saveUserVocab();
+
   appealOv.classList.remove("open");
   addGood("✅ '" + appealPending.display + "' 已加入你的个人词库");
+
+  // 记为已使用，回合继续
   used.add(appealPending.normalized);
   totalAnswers++;
   appealPending = null;
+
   currentTurn = "ai";
   turnLabel.textContent = "AI thinking…";
   inputEl.disabled = true;
@@ -647,22 +705,29 @@ appealInput.addEventListener("keydown", e => {
 });
 appealOv.addEventListener("click", e => { if (e.target === appealOv) cancelAppeal(); });
 
-// AI
-function aiTurn(){
+/* ═══════════════════════════════════════════
+   AI 回合
+   ═══════════════════════════════════════════ */
+function aiTurn() {
   if (!gameActive) return;
-  const remaining = wordBank.filter(w => !used.has(normalize(w)));
+
+  // 从词库里挑一个没被用过的
+  const remaining = wordBank.filter(w => !used.has(normalizeAnswer(w)));
   if (remaining.length === 0) {
-    addMsg("AI has no more answers.", "sys");
-    endGame("AI", "no more valid answers.");
+    addMsg("AI 没有更多的词了。", "sys");
+    endGame("AI", "词库用尽。");
     return;
   }
+
   const pick = remaining[Math.floor(Math.random() * remaining.length)];
-  used.add(normalize(pick));
+  used.add(normalizeAnswer(pick));
   totalAnswers++;
   addMsg(pick, "ai", "AI");
+
   round++;
   roundPill.textContent = "Round " + round;
   addRoundSep(round);
+
   currentTurn = "user";
   turnLabel.textContent = "Your turn";
   inputEl.disabled = false;
@@ -671,37 +736,53 @@ function aiTurn(){
   startTimer();
 }
 
-function endGame(loser, reason){
+/* ═══════════════════════════════════════════
+   游戏结束
+   ═══════════════════════════════════════════ */
+function endGame(loser, reason) {
   if (!gameActive) return;
   gameActive = false;
   stopTimer();
   inputEl.disabled = true;
   submitBtn.disabled = true;
+
   const winner = loser === "You" ? "AI" : "You";
-  overTitle.textContent = winner + " win!";
-  overReason.textContent = loser + " lost: " + reason;
-  overStat.innerHTML = "Rounds: <b>" + round + "</b> · Words used: <b>" + used.size + "</b>";
+  overTitle.textContent = winner === "You" ? "你赢了！" : "AI 赢了";
+  overReason.textContent = (loser === "You" ? "你" : "AI") + " 输：" + reason;
+  overStat.innerHTML = "回合数：<b>" + round + "</b> · 用词数：<b>" + used.size + "</b>";
   gameoverOv.classList.add("open");
+
   addMsg(winner + " win — " + loser + " lost: " + reason, "sys");
 }
 
-// Events
+/* ═══════════════════════════════════════════
+   事件绑定
+   ═══════════════════════════════════════════ */
 submitBtn.addEventListener("click", handleUserAnswer);
 inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); handleUserAnswer(); }
 });
+
 document.getElementById("quit-btn").addEventListener("click", () => {
-  if (gameActive) endGame("You", "you quit.");
-  else { gameoverOv.classList.remove("open"); topicOverlay.classList.add("open"); renderTopicList(""); }
+  if (gameActive) {
+    endGame("You", "你退出了。");
+  } else {
+    gameoverOv.classList.remove("open");
+    topicOverlay.classList.add("open");
+    renderTopicList("");
+  }
 });
+
 document.getElementById("used-btn").addEventListener("click", () => {
-  if (used.size === 0) { addMsg("No words used yet.", "sys"); return; }
-  addMsg("Used so far: " + Array.from(used).join(", "), "sys");
+  if (used.size === 0) { addMsg("还没有用过任何词。", "sys"); return; }
+  addMsg("已用词：" + Array.from(used).join("、"), "sys");
 });
+
 document.getElementById("again-btn").addEventListener("click", () => {
   gameoverOv.classList.remove("open");
   if (topicName) beginCountdown(topicName);
 });
+
 document.getElementById("back-btn").addEventListener("click", () => {
   gameoverOv.classList.remove("open");
   renderTopicList("");
@@ -709,7 +790,9 @@ document.getElementById("back-btn").addEventListener("click", () => {
   topicOverlay.classList.add("open");
 });
 
-// Init
+/* ═══════════════════════════════════════════
+   初始化
+   ═══════════════════════════════════════════ */
 renderTopicList("");
 topicOverlay.classList.add("open");
 setTimeout(() => topicSearchEl.focus(), 200);
